@@ -1,0 +1,99 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.project-list-page {
+  padding: $spacing-xl 0;
+}
+
+.pl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $gray-900;
+    margin: 0;
+  }
+}
+
+.pl-create-btn {
+  @include button-base;
+  background: $primary;
+  color: $text-inverse;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  text-decoration: none;
+
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+.pl-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-lg;
+}
+
+.pl-filter {
+  @include button-base;
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-sm;
+  border-radius: $radius-full;
+  background: $gray-100;
+  color: $text-secondary;
+  border: 1px solid transparent;
+
+  &.active {
+    background: rgba($primary, 0.1);
+    color: $primary;
+    border-color: $primary-light;
+    font-weight: $font-weight-semibold;
+  }
+
+  &:hover:not(.active) {
+    background: $gray-200;
+  }
+}
+
+.pl-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-lg;
+
+  @include respond-to($breakpoint-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to($breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pl-loading {
+  @include flex-center;
+  padding: $spacing-3xl;
+}
+
+.pl-empty {
+  @include flex-col-center;
+  padding: $spacing-3xl;
+  gap: $spacing-md;
+  color: $text-muted;
+
+  .btn-primary {
+    @include button-base;
+    background: $primary;
+    color: $text-inverse;
+    padding: $spacing-sm $spacing-xl;
+    border-radius: $radius-full;
+    font-size: $font-size-sm;
+    text-decoration: none;
+  }
+}

@@ -1,0 +1,123 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid $gray-200;
+  height: $header-height;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: $spacing-lg;
+}
+
+.header-logo {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $primary;
+  letter-spacing: -0.5px;
+}
+
+.header-nav {
+  display: flex;
+  gap: $spacing-md;
+  margin-left: $spacing-xl;
+
+  @include respond-to($breakpoint-md) {
+    display: none;
+  }
+}
+
+.nav-link {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $text-secondary;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-md;
+  transition:
+    color $transition-fast,
+    background $transition-fast;
+
+  &:hover {
+    color: $primary;
+    background: rgba($primary, 0.06);
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-left: auto;
+}
+
+.action-btn {
+  @include flex-center;
+  @include circle(36px);
+  border-radius: $radius-full;
+  transition: background $transition-fast;
+  font-size: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $text-secondary;
+  position: relative;
+
+  &:hover {
+    background: $gray-100;
+  }
+}
+
+.avatar-xs {
+  @include circle(28px);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.btn-primary-sm {
+  @include button-base;
+  background: $primary;
+  color: $text-inverse;
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-sm;
+  border-radius: $radius-full;
+
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+/* ─── Notification Bell ─── */
+.notif-wrapper {
+  position: relative;
+}
+
+.bell-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: $danger;
+  color: $text-inverse;
+  font-size: 10px;
+  font-weight: $font-weight-bold;
+  line-height: 16px;
+  text-align: center;
+  border-radius: $radius-full;
+  pointer-events: none;
+}

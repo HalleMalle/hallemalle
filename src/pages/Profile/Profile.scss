@@ -1,0 +1,212 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.profile-page {
+  padding: $spacing-xl 0;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: $spacing-xl;
+  align-items: start;
+
+  @include respond-to($breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Left Card ─── */
+.profile-card {
+  @include card;
+  @include flex-col-center;
+  padding: $spacing-xl;
+  gap: $spacing-md;
+  position: sticky;
+  top: calc(#{$header-height} + #{$spacing-xl});
+
+  @include respond-to($breakpoint-md) {
+    position: static;
+  }
+}
+
+.profile-avatar-wrap {
+  @include circle(120px);
+  overflow: hidden;
+  border: 3px solid $gray-200;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-name {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $gray-900;
+  text-align: center;
+  margin: 0;
+}
+
+.profile-username {
+  font-size: $font-size-sm;
+  color: $text-muted;
+  margin: -$spacing-sm 0 0;
+}
+
+.profile-score-section {
+  margin: $spacing-sm 0;
+}
+
+.profile-edit-btn {
+  @include button-base;
+  width: 100%;
+  background: $primary;
+  color: $text-inverse;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+/* ─── Profile Links ─── */
+.profile-links {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.profile-link {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  transition:
+    background $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    background: $gray-50;
+    color: $primary;
+  }
+}
+
+.link-icon {
+  @include flex-center;
+  @include circle(32px);
+  background: $gray-100;
+  border-radius: $radius-md;
+  color: $text-secondary;
+  flex-shrink: 0;
+}
+
+.logout-btn {
+  @include button-base;
+  width: 100%;
+  background: none;
+  border: 1px solid $gray-300;
+  color: $text-secondary;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+
+  &:hover {
+    border-color: $danger;
+    color: $danger;
+    background: rgba($danger, 0.04);
+  }
+}
+
+/* ─── Right Details ─── */
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.detail-section {
+  @include card;
+  padding: $spacing-lg;
+
+  h2 {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: $gray-900;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.bio-text {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  line-height: $line-height-relaxed;
+}
+
+/* ─── Tags ─── */
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.tag {
+  display: inline-flex;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  line-height: 1.4;
+
+  &--role {
+    background: rgba($primary, 0.1);
+    color: $primary;
+  }
+
+  &--info {
+    background: rgba($info, 0.1);
+    color: #3b82b0;
+  }
+
+  &--skill {
+    background: $gray-100;
+    color: $text-secondary;
+  }
+}
+
+/* ─── Detail Grid ─── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+
+  @include respond-to($breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: $font-size-sm;
+  color: $gray-800;
+}

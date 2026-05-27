@@ -1,0 +1,215 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+/* ─── Modal Overlay ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0, 0, 0, 0.5);
+  @include flex-center;
+  padding: $spacing-lg;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background: $bg-primary;
+  border-radius: $radius-xl;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  @include custom-scrollbar;
+  box-shadow: $shadow-xl;
+}
+
+.modal-header {
+  @include flex-between;
+  padding: $spacing-lg;
+  border-bottom: 1px solid $gray-200;
+  position: sticky;
+  top: 0;
+  background: $bg-primary;
+  z-index: 1;
+
+  h2 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $gray-900;
+    margin: 0;
+  }
+}
+
+.modal-close {
+  @include flex-center;
+  @include circle(32px);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $text-secondary;
+  border-radius: $radius-full;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $gray-100;
+  }
+}
+
+.modal-body {
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+/* ─── Fieldset ─── */
+.edit-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  legend {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $primary;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-xs;
+    border-bottom: 1px solid $gray-100;
+    width: 100%;
+  }
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+
+  > span {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+  }
+
+  input,
+  textarea,
+  select {
+    @include input-base;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+}
+
+/* ─── Chip Group ─── */
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.chip {
+  @include button-base;
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-xs;
+  border-radius: $radius-full;
+  background: $gray-100;
+  color: $text-secondary;
+  border: 1px solid $gray-200;
+
+  &:hover {
+    border-color: $primary-light;
+  }
+
+  &.active {
+    background: rgba($primary, 0.1);
+    color: $primary;
+    border-color: $primary-light;
+  }
+}
+
+.chip-removable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: inherit;
+  padding: 0 2px;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+/* ─── Tech Input ─── */
+.tech-input-row {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+
+  input {
+    @include input-base;
+    flex: 1;
+  }
+}
+
+.tech-add-btn {
+  @include button-base;
+  background: $gray-100;
+  color: $text-secondary;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  flex-shrink: 0;
+
+  &:hover {
+    background: $gray-200;
+  }
+}
+
+/* ─── Actions ─── */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+  padding-top: $spacing-md;
+  border-top: 1px solid $gray-200;
+}
+
+.btn-cancel {
+  @include button-base;
+  background: none;
+  border: 1px solid $gray-300;
+  color: $text-secondary;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-md;
+
+  &:hover {
+    background: $gray-50;
+  }
+}
+
+.btn-save {
+  @include button-base;
+  background: $primary;
+  color: $text-inverse;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-md;
+
+  &:hover {
+    background: $primary-dark;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}

@@ -1,0 +1,194 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.am-page {
+  padding: $spacing-xl 0;
+}
+
+.am-empty {
+  @include flex-col-center;
+  padding: $spacing-3xl;
+  gap: $spacing-lg;
+  text-align: center;
+
+  .btn-primary {
+    @include button-base;
+    background: $primary;
+    color: $text-inverse;
+    padding: $spacing-sm $spacing-xl;
+    border-radius: $radius-full;
+    text-decoration: none;
+  }
+}
+
+.am-header {
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $gray-900;
+    margin: $spacing-sm 0 0;
+  }
+}
+
+.am-project-title {
+  font-size: $font-size-sm;
+  color: $text-muted;
+  margin: $spacing-xs 0 0;
+}
+
+.am-completed-banner {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $success;
+  background: rgba($success, 0.08);
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-lg;
+}
+
+.am-section {
+  margin-bottom: $spacing-xl;
+
+  h2 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $gray-900;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.am-count {
+  font-size: $font-size-sm;
+  color: $primary;
+  font-weight: $font-weight-bold;
+}
+
+.am-none {
+  color: $text-muted;
+  font-size: $font-size-sm;
+  padding: $spacing-xl 0;
+  text-align: center;
+}
+
+.am-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.am-card {
+  @include card;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &.approved {
+    border-left: 3px solid $success;
+  }
+
+  &.rejected {
+    border-left: 3px solid $danger;
+    opacity: 0.7;
+  }
+
+  &.pending {
+    border-left: 3px solid $warning;
+  }
+}
+
+.am-profile {
+  display: flex;
+  gap: $spacing-md;
+  align-items: flex-start;
+}
+
+.am-profile-avatar {
+  @include circle(44px);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.am-profile-name {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $gray-900;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.am-profile-username {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  font-weight: $font-weight-normal;
+}
+
+.am-profile-bio {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-top: $spacing-xs;
+  @include text-clamp(2);
+}
+
+.am-profile-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: $spacing-xs;
+}
+
+.am-message {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  background: $gray-50;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  margin: 0;
+  font-style: italic;
+}
+
+.am-actions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: flex-end;
+}
+
+.am-btn {
+  @include button-base;
+  padding: $spacing-xs $spacing-lg;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+
+  &.approve {
+    background: $success;
+    color: $text-inverse;
+
+    &:hover:not(:disabled) {
+      background: darken($success, 8%);
+    }
+  }
+
+  &.reject {
+    background: $danger;
+    color: $text-inverse;
+
+    &:hover:not(:disabled) {
+      background: darken($danger, 8%);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.am-status-badge {
+  text-align: right;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}

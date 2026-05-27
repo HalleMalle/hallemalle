@@ -1,0 +1,167 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.review-form {
+  @include card;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.review-form-target {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $gray-200;
+}
+
+.review-form-target-avatar {
+  @include circle(44px);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.review-form-target-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-form-target-name {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $gray-900;
+}
+
+.review-form-target-project {
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+/* ─── Star Rating ─── */
+.review-form-stars {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.review-form-stars-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $gray-700;
+}
+
+.review-form-stars-input {
+  display: flex;
+  gap: 4px;
+}
+
+.review-form-star-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  transition: transform $transition-fast;
+  color: $gray-300;
+
+  &:hover {
+    transform: scale(1.2);
+  }
+
+  &--active {
+    color: $warning;
+  }
+}
+
+.review-form-star-label {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-left: $spacing-sm;
+}
+
+/* ─── Content ─── */
+.review-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.review-form-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $gray-700;
+}
+
+.review-form-textarea {
+  @include input-base;
+  min-height: 120px;
+  resize: vertical;
+  font-family: $font-sans;
+  line-height: $line-height-relaxed;
+}
+
+/* ─── Submit ─── */
+.review-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+}
+
+.review-form-submit {
+  @include button-base;
+  background: $primary;
+  color: $text-inverse;
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+
+  &:hover:not(:disabled) {
+    background: $primary-dark;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.review-form-cancel {
+  @include button-base;
+  background: none;
+  border: 1px solid $gray-300;
+  color: $text-secondary;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+
+  &:hover {
+    background: $gray-50;
+  }
+}
+
+.review-form-error {
+  font-size: $font-size-sm;
+  color: $danger;
+  background: rgba($danger, 0.06);
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+}
+
+.review-form-success {
+  font-size: $font-size-sm;
+  color: $success;
+  background: rgba($success, 0.06);
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  @include flex-center;
+  gap: $spacing-sm;
+}

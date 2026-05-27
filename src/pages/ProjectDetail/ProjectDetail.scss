@@ -1,0 +1,447 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.project-detail-page {
+  padding: $spacing-xl 0;
+}
+
+.pd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-bottom: $spacing-lg;
+  text-decoration: none;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.pd-not-found {
+  @include flex-col-center;
+  padding: $spacing-3xl;
+  gap: $spacing-lg;
+  text-align: center;
+
+  .btn-primary {
+    @include button-base;
+    background: $primary;
+    color: $text-inverse;
+    padding: $spacing-sm $spacing-xl;
+    border-radius: $radius-full;
+    text-decoration: none;
+  }
+}
+
+.pd-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: $spacing-xl;
+  align-items: start;
+
+  @include respond-to($breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pd-main {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.pd-header {
+  margin-bottom: $spacing-sm;
+}
+
+.pd-badges {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.pd-status {
+  font-size: 11px;
+  font-weight: $font-weight-semibold;
+  padding: 3px 10px;
+  border-radius: $radius-full;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.recruiting {
+    background: rgba($success, 0.12);
+    color: $success;
+  }
+
+  &.closed {
+    background: $gray-100;
+    color: $text-muted;
+  }
+}
+
+.pd-stage {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  padding: 3px 10px;
+  background: $gray-100;
+  border-radius: $radius-full;
+}
+
+.pd-title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $gray-900;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.pd-desc {
+  font-size: $font-size-base;
+  color: $text-secondary;
+  line-height: $line-height-relaxed;
+  white-space: pre-wrap;
+}
+
+.pd-section h2 {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $gray-900;
+  margin: 0 0 $spacing-md;
+  padding-bottom: $spacing-xs;
+  border-bottom: 1px solid $gray-200;
+}
+
+.pd-positions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.pd-pos-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: $gray-50;
+  border-radius: $radius-md;
+}
+
+.pd-pos-role {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $gray-800;
+  min-width: 80px;
+}
+
+.pd-pos-count {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  min-width: 60px;
+
+  strong {
+    color: $primary;
+  }
+}
+
+.pd-pos-bar {
+  flex: 1;
+  height: 6px;
+  background: $gray-200;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pd-pos-fill {
+  height: 100%;
+  background: $primary;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.pd-total-slots {
+  text-align: right;
+  font-size: $font-size-sm;
+  color: $text-muted;
+  margin-top: $spacing-sm;
+
+  strong {
+    color: $primary;
+  }
+}
+
+.pd-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.pd-att-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: $gray-50;
+  border-radius: $radius-md;
+}
+
+.pd-att-icon {
+  color: $text-muted;
+  display: flex;
+}
+
+.pd-att-name {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $gray-800;
+}
+
+.pd-att-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: $radius-full;
+  background: rgba($warning, 0.15);
+  color: #b8860b;
+}
+
+.pd-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-sm;
+}
+
+.pd-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pd-info-label {
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.pd-info-value {
+  font-size: $font-size-sm;
+  color: $gray-800;
+}
+
+.pd-sidebar {
+  position: sticky;
+  top: calc(#{$header-height} + #{$spacing-xl});
+
+  @include respond-to($breakpoint-md) {
+    position: static;
+  }
+}
+
+.pd-side-card {
+  @include card;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.pd-creator {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.pd-creator-avatar {
+  @include circle(48px);
+  object-fit: cover;
+}
+
+.pd-creator-name {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $gray-900;
+  margin: 0;
+}
+
+.pd-creator-label {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin: 2px 0 0;
+}
+
+.pd-side-actions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.pd-action-btn {
+  @include button-base;
+  width: 100%;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  text-align: center;
+  text-decoration: none;
+
+  &.primary {
+    background: $primary;
+    color: $text-inverse;
+
+    &:hover:not(.disabled) {
+      background: $primary-dark;
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &.secondary {
+    background: $gray-100;
+    color: $text-secondary;
+
+    &:hover {
+      background: $gray-200;
+    }
+  }
+}
+
+.pd-side-hint {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  text-align: center;
+  margin: 0;
+}
+
+.pd-status.completed {
+  background: rgba($success, 0.12);
+  color: $success;
+}
+
+/* ─── Complete Button ─── */
+.pd-complete-btn {
+  @include button-base;
+  width: 100%;
+  background: $danger;
+  color: $text-inverse;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+
+  &:hover {
+    background: darken($danger, 10%);
+  }
+}
+
+.pd-complete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background: rgba($danger, 0.04);
+  border-radius: $radius-md;
+}
+
+.pd-complete-warn {
+  font-size: $font-size-xs;
+  color: $danger;
+  font-weight: $font-weight-medium;
+  text-align: center;
+}
+
+.pd-complete-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.pd-complete-yes {
+  @include button-base;
+  flex: 1;
+  background: $danger;
+  color: $text-inverse;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-md;
+  font-size: $font-size-xs;
+
+  &:hover:not(:disabled) {
+    background: darken($danger, 10%);
+  }
+}
+
+.pd-complete-no {
+  @include button-base;
+  flex: 1;
+  background: $gray-100;
+  color: $text-secondary;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-md;
+  font-size: $font-size-xs;
+  border: 1px solid $gray-300;
+
+  &:hover {
+    background: $gray-200;
+  }
+}
+
+/* ─── Team Members Review ─── */
+.pd-side-team {
+  border-top: 1px solid $gray-200;
+  padding-top: $spacing-md;
+}
+
+.pd-team-title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $gray-900;
+  margin: 0 0 $spacing-md;
+}
+
+.pd-team-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.pd-team-member {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  background: $gray-50;
+}
+
+.pd-team-avatar {
+  @include circle(32px);
+  object-fit: cover;
+}
+
+.pd-team-name {
+  flex: 1;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $gray-800;
+}
+
+.pd-team-review-btn {
+  @include button-base;
+  font-size: 11px;
+  padding: 3px 12px;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  text-decoration: none;
+
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+.pd-team-reviewed {
+  font-size: 11px;
+  color: $success;
+  font-weight: $font-weight-medium;
+}

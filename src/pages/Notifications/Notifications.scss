@@ -1,0 +1,113 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.notif-page {
+  padding: $spacing-xl 0;
+}
+
+.notif-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $gray-900;
+    margin: 0;
+  }
+}
+
+.notif-mark-all {
+  @include button-base;
+  background: none;
+  border: none;
+  color: $primary;
+  font-size: $font-size-sm;
+  padding: $spacing-xs $spacing-md;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.notif-empty-state {
+  @include flex-center;
+  padding: $spacing-3xl;
+  color: $text-muted;
+  font-size: $font-size-base;
+}
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: $gray-200;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+.notif-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background: $bg-primary;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $gray-50;
+  }
+
+  &.unread {
+    background: rgba($primary, 0.02);
+    border-left: 3px solid $primary;
+  }
+}
+
+.notif-list-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notif-list-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-list-title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $gray-900;
+  margin: 0;
+}
+
+.notif-list-message {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin: 2px 0 0;
+  @include text-ellipsis;
+}
+
+.notif-list-time {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-top: 4px;
+  display: block;
+}
+
+.notif-list-link {
+  flex-shrink: 0;
+  font-size: $font-size-sm;
+  color: $primary;
+  text-decoration: none;
+  padding: $spacing-xs $spacing-sm;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

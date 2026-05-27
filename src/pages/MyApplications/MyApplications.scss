@@ -1,0 +1,100 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.ma-page {
+  padding: $spacing-xl 0;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $gray-900;
+    margin: 0 0 $spacing-lg;
+  }
+}
+
+.ma-empty {
+  @include flex-col-center;
+  padding: $spacing-3xl;
+  gap: $spacing-md;
+  color: $text-muted;
+
+  .btn-primary {
+    @include button-base;
+    background: $primary;
+    color: $text-inverse;
+    padding: $spacing-sm $spacing-xl;
+    border-radius: $radius-full;
+    text-decoration: none;
+  }
+}
+
+.ma-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.ma-card {
+  @include card;
+  padding: $spacing-lg;
+
+  &.approved {
+    border-left: 3px solid $success;
+  }
+  &.rejected {
+    border-left: 3px solid $danger;
+    opacity: 0.7;
+  }
+  &.pending {
+    border-left: 3px solid $warning;
+  }
+}
+
+.ma-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+}
+
+.ma-project-name {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $gray-900;
+  text-decoration: none;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.ma-status {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+}
+
+.ma-message {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  background: $gray-50;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  margin: $spacing-sm 0 0;
+  font-style: italic;
+}
+
+.ma-card-footer {
+  margin-top: $spacing-sm;
+  text-align: right;
+}
+
+.ma-view-link {
+  font-size: $font-size-sm;
+  color: $primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

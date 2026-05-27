@@ -1,0 +1,326 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.dashboard-page {
+  padding: $spacing-xl 0;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+
+  @include respond-to($breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-md;
+  }
+}
+
+.dashboard-greeting {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $gray-900;
+  margin: 0;
+}
+
+.dashboard-subtitle {
+  font-size: $font-size-sm;
+  color: $text-muted;
+  margin: $spacing-xs 0 0;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  @include respond-to($breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to($breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  @include card;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  text-align: center;
+}
+
+.stat-number {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $primary;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  font-weight: $font-weight-medium;
+}
+
+.dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  @include respond-to($breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to($breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.action-card {
+  @include card;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  text-decoration: none;
+  color: $text-secondary;
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-fast;
+  cursor: pointer;
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  span {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+
+  &--create {
+    color: $primary;
+
+    &:hover {
+      background: rgba($primary, 0.03);
+    }
+  }
+
+  &--apps {
+    color: $success;
+
+    &:hover {
+      background: rgba($success, 0.03);
+    }
+  }
+
+  &--profile {
+    color: $info;
+
+    &:hover {
+      background: rgba($info, 0.03);
+    }
+  }
+
+  &--apps-sent {
+    color: $warning;
+
+    &:hover {
+      background: rgba($warning, 0.03);
+    }
+  }
+}
+
+.dashboard-section {
+  margin-bottom: $spacing-xl;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+
+  h2 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $gray-900;
+    margin: 0;
+  }
+}
+
+.section-link {
+  font-size: $font-size-sm;
+  color: $primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.section-empty {
+  @include card;
+  @include flex-col-center;
+  padding: $spacing-2xl;
+  gap: $spacing-md;
+  text-align: center;
+
+  p {
+    font-size: $font-size-sm;
+    color: $text-muted;
+    margin: 0;
+  }
+
+  .btn-primary {
+    @include button-base;
+    background: $primary;
+    color: $text-inverse;
+    padding: $spacing-sm $spacing-xl;
+    border-radius: $radius-full;
+    text-decoration: none;
+    font-size: $font-size-sm;
+
+    &:hover {
+      background: $primary-dark;
+    }
+  }
+}
+
+.project-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: $spacing-md;
+}
+
+.dashboard-project-card {
+  @include card-hover;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-lg;
+  text-decoration: none;
+  color: inherit;
+
+  &.team {
+    border-left: 3px solid $info;
+  }
+}
+
+.dpc-top {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.dpc-status {
+  font-size: 11px;
+  font-weight: $font-weight-semibold;
+  padding: 2px 8px;
+  border-radius: $radius-full;
+  letter-spacing: 0.3px;
+
+  &.recruiting {
+    background: rgba($success, 0.12);
+    color: $success;
+  }
+
+  &.closed {
+    background: $gray-100;
+    color: $text-muted;
+  }
+
+  &.completed {
+    background: rgba($success, 0.12);
+    color: $success;
+  }
+}
+
+.dpc-stage {
+  font-size: 10px;
+  color: $text-muted;
+  padding: 2px 8px;
+  background: $gray-100;
+  border-radius: $radius-full;
+}
+
+.dpc-creator {
+  font-size: 10px;
+  color: $text-muted;
+  padding: 2px 8px;
+  background: $gray-100;
+  border-radius: $radius-full;
+}
+
+.dpc-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $gray-900;
+  margin: 0;
+  @include text-clamp(2);
+}
+
+.dpc-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.recent-apps-list {
+  @include card;
+  overflow: hidden;
+}
+
+.recent-app-item {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm $spacing-lg;
+  border-bottom: 1px solid $gray-100;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.recent-app-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.recent-app-status {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &.pending {
+    color: $warning;
+  }
+
+  &.approved {
+    color: $success;
+  }
+
+  &.rejected {
+    color: $danger;
+  }
+}
+
+.recent-app-project {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}

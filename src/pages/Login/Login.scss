@@ -1,0 +1,60 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.login-page {
+  @include flex-center;
+  min-height: calc(100vh - #{$header-height} - 80px);
+  padding: $spacing-lg;
+}
+
+.login-card {
+  @include card;
+  @include flex-col-center;
+  padding: $spacing-3xl $spacing-xl;
+  max-width: 400px;
+  width: 100%;
+  gap: $spacing-lg;
+}
+
+.login-title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $primary;
+  letter-spacing: -0.5px;
+}
+
+.login-desc {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+}
+
+.github-login-btn {
+  @include button-base;
+  width: 100%;
+  padding: $spacing-md $spacing-lg;
+  background: #24292f;
+  color: #ffffff;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-md;
+  gap: $spacing-sm;
+
+  &:hover {
+    background: #1b1f23;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.github-icon {
+  flex-shrink: 0;
+}
+
+.login-error {
+  color: $danger;
+  font-size: $font-size-sm;
+  text-align: center;
+  margin: 0;
+}

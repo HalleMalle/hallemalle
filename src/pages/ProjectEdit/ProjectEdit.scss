@@ -1,0 +1,146 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.project-edit-page {
+  padding: $spacing-xl 0;
+}
+
+.pe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $gray-900;
+    margin: 0;
+  }
+}
+
+.pe-view-link {
+  font-size: $font-size-sm;
+  color: $primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.pe-status-section {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background: $gray-50;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-lg;
+}
+
+.pe-status-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $text-secondary;
+}
+
+.pe-status-toggle {
+  @include button-base;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  background: $gray-100;
+  border: 1px solid $gray-300;
+
+  &.recruiting {
+    background: rgba($success, 0.1);
+    border-color: rgba($success, 0.3);
+  }
+
+  &.closed {
+    background: rgba($danger, 0.08);
+    border-color: rgba($danger, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.pe-status-hint {
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.pe-completed-badge {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $gray-700;
+  padding: $spacing-xs $spacing-md;
+  background: rgba($success, 0.1);
+  border-radius: $radius-full;
+}
+
+.pe-complete-btn {
+  @include button-base;
+  background: $danger;
+  color: $text-inverse;
+  padding: $spacing-xs $spacing-lg;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &:hover:not(:disabled) {
+    background: darken($danger, 10%);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.pe-complete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.pe-complete-warn {
+  font-size: $font-size-sm;
+  color: $danger;
+  font-weight: $font-weight-medium;
+}
+
+.pe-complete-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.pe-complete-yes {
+  @include button-base;
+  background: $danger;
+  color: $text-inverse;
+  padding: $spacing-xs $spacing-lg;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+
+  &:hover:not(:disabled) {
+    background: darken($danger, 10%);
+  }
+}
+
+.pe-complete-no {
+  @include button-base;
+  background: $gray-100;
+  color: $text-secondary;
+  padding: $spacing-xs $spacing-lg;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  border: 1px solid $gray-300;
+
+  &:hover {
+    background: $gray-200;
+  }
+}

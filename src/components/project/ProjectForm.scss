@@ -1,0 +1,192 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.project-form {
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.form-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  legend {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: $gray-900;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-xs;
+    border-bottom: 2px solid $primary;
+    width: 100%;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+
+  > span {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+  }
+
+  input,
+  textarea,
+  select {
+    @include input-base;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+
+  @include respond-to($breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Stage Selector ─── */
+.stage-selector {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.stage-btn {
+  @include button-base;
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+  border-radius: $radius-md;
+  background: $gray-100;
+  color: $text-secondary;
+  border: 1px solid $gray-200;
+
+  &.active {
+    background: rgba($primary, 0.1);
+    color: $primary;
+    border-color: $primary-light;
+    font-weight: $font-weight-semibold;
+  }
+
+  &:hover:not(.active) {
+    background: $gray-200;
+  }
+}
+
+/* ─── Attachment ─── */
+.attachment-section {
+  padding: $spacing-md;
+  background: $gray-50;
+  border-radius: $radius-md;
+  border: 1px dashed $gray-300;
+}
+
+.attachment-desc {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.attachment-controls {
+  display: flex;
+  gap: $spacing-md;
+  align-items: flex-end;
+
+  @include respond-to($breakpoint-sm) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.visibility-select {
+  min-width: 160px;
+}
+
+/* ─── Positions ─── */
+.positions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-sm;
+
+  @include respond-to($breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.position-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background: $gray-50;
+  border-radius: $radius-md;
+}
+
+.position-label {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $gray-800;
+  font-weight: $font-weight-medium;
+}
+
+.position-input {
+  width: 60px;
+  padding: $spacing-xs $spacing-sm;
+  border: 1px solid $gray-300;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  text-align: center;
+  font-family: $font-sans;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.15);
+  }
+}
+
+.position-unit {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  min-width: 16px;
+}
+
+/* ─── Submit ─── */
+.form-submit {
+  @include button-base;
+  width: 100%;
+  padding: $spacing-md;
+  background: $primary;
+  color: $text-inverse;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-md;
+
+  &:hover:not(:disabled) {
+    background: $primary-dark;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.form-hint {
+  font-size: $font-size-xs;
+  color: $danger;
+  margin-top: $spacing-xs;
+}

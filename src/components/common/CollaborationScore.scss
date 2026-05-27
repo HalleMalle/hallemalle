@@ -1,0 +1,64 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.collab-score {
+  @include flex-col-center;
+  gap: $spacing-xs;
+}
+
+/* sizes */
+.collab-score--sm {
+  .score-value {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+  }
+  .score-label {
+    font-size: 10px;
+  }
+}
+
+.collab-score--md {
+  .score-value {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+  }
+  .score-label {
+    font-size: $font-size-xs;
+  }
+}
+
+.collab-score--lg {
+  .score-value {
+    font-size: 36px;
+    font-weight: $font-weight-bold;
+  }
+  .score-label {
+    font-size: $font-size-sm;
+  }
+}
+
+/* arc */
+.score-visual {
+  position: relative;
+  width: 120px;
+  height: 60px;
+  @include flex-center;
+}
+
+.score-arc {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.score-value {
+  position: relative;
+  z-index: 1;
+  letter-spacing: -0.5px;
+}
+
+.score-label {
+  color: $text-muted;
+  font-weight: $font-weight-medium;
+}

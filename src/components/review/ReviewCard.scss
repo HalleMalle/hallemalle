@@ -1,0 +1,83 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.review-card {
+  @include card;
+  padding: $spacing-md $spacing-lg;
+  display: flex;
+  gap: $spacing-md;
+  transition: box-shadow $transition-fast;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+}
+
+.review-card-avatar {
+  @include circle(40px);
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.review-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-card-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xs;
+}
+
+.review-card-name {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $gray-800;
+}
+
+.review-card-date {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-left: auto;
+}
+
+.review-card-stars {
+  display: flex;
+  gap: 2px;
+  margin-bottom: $spacing-sm;
+}
+
+.review-card-star {
+  width: 16px;
+  height: 16px;
+  color: $gray-300;
+  transition: color $transition-fast;
+
+  &--filled {
+    color: $warning;
+  }
+}
+
+.review-card-content {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  line-height: $line-height-relaxed;
+  word-break: break-word;
+}
+
+.review-card-project {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-top: $spacing-sm;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
