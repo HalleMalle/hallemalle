@@ -31,10 +31,10 @@ export default function Home() {
             지금 바로 팀을 찾거나, 새로운 프로젝트를 시작하세요.
           </p>
           <div className="hero-actions">
-            <Link to="/project-list" className="btn-primary">
+            <Link to="/togethers" className="btn-primary">
               프로젝트 둘러보기
             </Link>
-            <Link to="/project/create" className="btn-outline">
+            <Link to="/togethers/write" className="btn-outline">
               새 프로젝트 만들기
             </Link>
           </div>
