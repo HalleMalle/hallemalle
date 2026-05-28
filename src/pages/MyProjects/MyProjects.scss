@@ -1,0 +1,6 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.my-projects-page {
+  padding: $spacing-xl 0;
+}

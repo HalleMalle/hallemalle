@@ -1,15 +1,20 @@
-import js from '@eslint/js'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import prettierConfig from 'eslint-config-prettier'
+import js from "@eslint/js";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import globals from "globals";
 
 export default [
-  // JS 기본 권장
+  { ignores: ["dist/"] },
   js.configs.recommended,
   {
     plugins: {
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
     },
     rules: {
       // React Hooks
