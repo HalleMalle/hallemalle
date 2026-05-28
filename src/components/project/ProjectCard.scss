@@ -1,0 +1,6 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.project-card {
+  @include card-hover;
+}
