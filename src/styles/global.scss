@@ -57,11 +57,7 @@ select {
   width: 100%;
   max-width: $max-width;
   margin: 0 auto;
-  padding: 0 $spacing-md;
-
-  @include tablet-up {
-    padding: 0 $spacing-lg;
-  }
+  padding: 0 $spacing-lg;
 }
 
 .sr-only {

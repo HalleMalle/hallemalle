@@ -1,15 +1,18 @@
 // ─── Color Palette ───
-$primary: #6c5ce7;
-$primary-light: #a29bfe;
-$primary-dark: #4834d4;
+$primary: #000000;
+$primary-light: #E5E5E5;
+$primary-dark: #f1edec;
 
-$accent: #fd79a8;
-$accent-light: #fab1c8;
+$accent: #b5f086;
+$accent-light: #f1edec;
 
-$success: #00b894;
-$warning: #fdcb6e;
-$danger: #e17055;
-$info: #74b9ff;
+$success: #386a0e;
+$success-light: #daf3c5;
+$warning: #f4a836;
+$danger: #f44336;
+$danger-light: #ffebeb;
+$info: #1945ac;
+$info-light: #ebf1ff;
 
 $gray-50: #f8f9fa;
 $gray-100: #f1f3f5;
@@ -23,7 +26,7 @@ $gray-800: #343a40;
 $gray-900: #212529;
 
 $bg-primary: #ffffff;
-$bg-secondary: #f8f9fa;
+$bg-secondary: #f7f6f4;
 $bg-dark: #1a1a2e;
 
 $text-primary: #212529;
@@ -37,7 +40,7 @@ $score-medium: #00b894; // 21-40: 초록
 $score-good: #fdcb6e; // 41-70: 노랑
 $score-high: #e17055; // 71-90: 주황
 $score-very-high: #d63031; // 91-100: 빨강
-$score-banned: #636e72; // 제재: 회색
+$score-banned: #747878; // 제재: 회색
 
 // ─── Typography ───
 $font-sans:
@@ -100,4 +103,4 @@ $breakpoint-xl: 1280px;
 
 // ─── Layout ───
 $header-height: 64px;
-$max-width: 1200px;
+$max-width: 1048px;
