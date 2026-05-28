@@ -13,11 +13,11 @@ import ProjectList from "./pages/ProjectList/ProjectList";
 import ProjectDetail from "./pages/ProjectDetail/ProjectDetail";
 import ProjectCreate from "./pages/ProjectCreate/ProjectCreate";
 import ProjectEdit from "./pages/ProjectEdit/ProjectEdit";
-import References from "./pages/References/References";
+import ReferenceList from "./pages/ReferenceList/ReferenceList";
 import Notifications from "./pages/Notifications/Notifications";
 import MyProjects from "./pages/MyProjects/MyProjects";
-import Retrospectives from "./pages/Retrospectives/Retrospectives";
-import WriteReview from "./pages/WriteReview/WriteReview";
+import RetrospectiveList from "./pages/RetrospectiveList/RetrospectiveList";
+import ReviewWrite from "./pages/ReviewWrite/ReviewWrite";
 
 export default function AppRouter() {
   return (
@@ -29,12 +29,36 @@ export default function AppRouter() {
               {/* 인증 불필요 */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/project-list" element={<ProjectList />} />
-              <Route path="/project-list/:id" element={<ProjectDetail />} />
-              <Route path="/references" element={<References />} />
-              <Route path="/retrospectives" element={<Retrospectives />} />
+              <Route path="/togethers" element={<ProjectList />} />
+              <Route path="/togethers/:id" element={<ProjectDetail />} />
+              <Route path="/references" element={<ReferenceList />} />
+              <Route path="/memoirs" element={<RetrospectiveList />} />
 
               {/* 인증 필요 */}
+              <Route
+                path="/togethers/write"
+                element={
+                  <ProtectedRoute>
+                    <ProjectCreate />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/togethers/:id/edit" 
+                element={
+                  <ProtectedRoute>
+                    <ProjectEdit />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/togethers/:id/review/:targetUserId"
+                element={
+                  <ProtectedRoute>
+                    <ReviewWrite />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/profile"
                 element={
@@ -52,23 +76,23 @@ export default function AppRouter() {
                 }
               />
               <Route
-                path="/project/create"
+                path="/profile/responses"
                 element={
                   <ProtectedRoute>
-                    <ProjectCreate />
+                    {/* <ResponseList /> */}
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/project/:id/edit"
+                path="/profile/requests"
                 element={
                   <ProtectedRoute>
-                    <ProjectEdit />
+                    {/* <RequestList /> */}
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/notifications"
+                path="/profile/notifications"
                 element={
                   <ProtectedRoute>
                     <Notifications />
@@ -76,18 +100,10 @@ export default function AppRouter() {
                 }
               />
               <Route
-                path="/my-projects"
+                path="/profile/togethers"
                 element={
                   <ProtectedRoute>
                     <MyProjects />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/write-review/:projectId/:targetUserId"
-                element={
-                  <ProtectedRoute>
-                    <WriteReview />
                   </ProtectedRoute>
                 }
               />

@@ -19,14 +19,14 @@ export default function Header() {
         </Link>
 
         <nav className="header-nav">
-          <Link to="/project-list" className="nav-link">
+          <Link to="/togethers" className="nav-link">
             프로젝트
-          </Link>
-          <Link to="/retrospectives" className="nav-link">
-            회고록
           </Link>
           <Link to="/references" className="nav-link">
             참고주제
+          </Link>
+          <Link to="/memoirs" className="nav-link">
+            회고록
           </Link>
         </nav>
 
