@@ -1,6 +1,5 @@
-import ReviewList from "@/components/review/ReviewList";
+import ReviewList from "@/components/ReviewList";
 
-import ProfileEdit from "./ProfileEdit";
 import "./Profile.scss";
 
 const ROLE_LABELS = {

@@ -1,4 +1,4 @@
-import ProjectForm from "@/components/project/ProjectForm";
+import ProjectForm from "@/components/ProjectCard";
 
 import "./ProjectCreate.scss";
 

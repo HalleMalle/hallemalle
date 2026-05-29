@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+
 import { useAuth } from "./AuthContext";
 
 const NotificationContext = createContext(null);

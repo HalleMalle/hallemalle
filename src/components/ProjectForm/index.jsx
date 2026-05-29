@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./ProjectForm.scss";
 
 const ROLE_OPTIONS = ["FE", "BE", "Design", "Android", "iOS", "PM", "QA", "AI"];

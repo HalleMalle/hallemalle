@@ -1,4 +1,5 @@
-import ReviewCard from "./ReviewCard";
+import ReviewCard from "@/components/ReviewCard";
+
 import "./ReviewList.scss";
 
 export default function ReviewList({ reviews = [], title = "받은 리뷰" }) {
