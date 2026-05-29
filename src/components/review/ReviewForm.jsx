@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./ReviewForm.scss";
 
 const STAR_LABELS = {

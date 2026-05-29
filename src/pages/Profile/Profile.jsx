@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import ReviewList from "../../components/review/ReviewList";
+import ReviewList from "@/components/review/ReviewList";
+
 import ProfileEdit from "./ProfileEdit";
 import "./Profile.scss";
 

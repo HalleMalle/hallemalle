@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import "./MyApplications.scss";
 
 const STATUS_CONFIG = {

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import useInView from "../../hooks/useInView";
+import useInView from "@/hooks/useInView";
 import "./Home.scss";
 
 function AnimatedSection({ children, className = "" }) {

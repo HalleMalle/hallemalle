@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
 import "./ApplicationsManage.scss";
 
 const STATUS_LABELS = {

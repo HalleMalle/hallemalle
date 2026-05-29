@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import NotificationDropdown from "../notification/NotificationDropdown";
+
+import NotificationDropdown from "@/components/notification/NotificationDropdown";
+
 import "./Header.scss";
 
 export default function Header() {
