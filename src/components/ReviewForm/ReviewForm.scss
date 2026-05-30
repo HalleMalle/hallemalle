@@ -1,6 +1,6 @@
 @use "@/styles/variables" as *;
 @use "@/styles/mixins" as *;
 
-.login-page {
-  @include flex-center;
+.review-form {
+  @include card;
 }
