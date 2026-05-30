@@ -1,23 +1,23 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
-import { NotificationProvider } from "./contexts/NotificationContext";
-import ProtectedRoute from "./components/layout/ProtectedRoute";
-import Layout from "./components/layout/Layout";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import Layout from "@/components/layout/Layout";
 
 // Pages (Placeholder → 구현 시 페이지별 파일 생성)
-import Home from "./pages/Home/Home";
-import Login from "./pages/Login/Login";
-import Profile from "./pages/Profile/Profile";
-import Portfolio from "./pages/Portfolio/Portfolio";
-import ProjectList from "./pages/ProjectList/ProjectList";
-import ProjectDetail from "./pages/ProjectDetail/ProjectDetail";
-import ProjectCreate from "./pages/ProjectCreate/ProjectCreate";
-import ProjectEdit from "./pages/ProjectEdit/ProjectEdit";
-import ReferenceList from "./pages/ReferenceList/ReferenceList";
-import Notifications from "./pages/Notifications/Notifications";
-import MyProjects from "./pages/MyProjects/MyProjects";
-import RetrospectiveList from "./pages/RetrospectiveList/RetrospectiveList";
-import ReviewWrite from "./pages/ReviewWrite/ReviewWrite";
+import Home from "@/pages/Home";
+import Login from "@/pages/Login";
+import Profile from "@/pages/Profile";
+import Portfolio from "@/pages/Portfolio";
+import ProjectList from "@/pages/ProjectList";
+import ProjectDetail from "@/pages/ProjectDetail";
+import ProjectCreate from "@/pages/ProjectCreate";
+import ProjectEdit from "@/pages/ProjectEdit";
+import ReferenceList from "@/pages/ReferenceList";
+import Notifications from "@/pages/Notifications";
+import MyProjects from "@/pages/MyProjects";
+import RetrospectiveList from "@/pages/RetrospectiveList";
+import ReviewWrite from "@/pages/ReviewWrite";
 
 export default function AppRouter() {
   return (
