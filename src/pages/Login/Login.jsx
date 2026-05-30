@@ -1,21 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import "./Login.scss";
 
 const DEFAULT_REDIRECT_PATH = "/togethers";
-
-function getSafeReturnPath(returnUrl) {
-  if (!returnUrl || typeof returnUrl !== "string") {
-    return DEFAULT_REDIRECT_PATH;
-  }
-
-  if (!returnUrl.startsWith("/") || returnUrl.startsWith("//")) {
-    return DEFAULT_REDIRECT_PATH;
-  }
-
-  return returnUrl;
-}
 
 function getLoginErrorMessage(error) {
   const code = error?.code || "";
@@ -34,14 +22,8 @@ function getLoginErrorMessage(error) {
 export default function Login() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const returnPath = useMemo(
-    () => getSafeReturnPath(searchParams.get("returnUrl")),
-    [searchParams],
-  );
 
   const isAuthenticated = Boolean(auth?.isAuthenticated || auth?.user);
   const isAuthLoading = Boolean(auth?.loading);
@@ -49,9 +31,9 @@ export default function Login() {
 
   useEffect(() => {
     if (!isAuthLoading && isAuthenticated) {
-      navigate(returnPath, { replace: true });
+      navigate(DEFAULT_REDIRECT_PATH, { replace: true });
     }
-  }, [isAuthLoading, isAuthenticated, navigate, returnPath]);
+  }, [isAuthLoading, isAuthenticated, navigate]);
 
   async function handleGithubLogin() {
     setErrorMessage("");
@@ -63,7 +45,7 @@ export default function Login() {
       }
 
       await signIn();
-      navigate(returnPath, { replace: true });
+      navigate(DEFAULT_REDIRECT_PATH, { replace: true });
     } catch (error) {
       setErrorMessage(getLoginErrorMessage(error));
     } finally {
