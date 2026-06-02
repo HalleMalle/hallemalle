@@ -1,17 +1,26 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 
+import { useAuth } from "@/contexts/AuthContext";
 import NotificationDropdown from "@/components/NotificationDropdown";
 
 import "./Header.scss";
 
 export default function Header() {
+  const { user, isAuthenticated, signOut } = useAuth();
   // TODO: const { unreadCount } = useNotifications();
   const unreadCount = 0; // 임시값
   const [showNotif, setShowNotif] = useState(false);
 
   const toggleNotif = useCallback(() => setShowNotif((v) => !v), []);
   const closeNotif = useCallback(() => setShowNotif(false), []);
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+    closeNotif();
+  }, [closeNotif, signOut]);
+
+  const profileImage = user?.photoURL || user?.profileImageUrl;
+  const profileLabel = user?.username || user?.displayName || "프로필";
 
   return (
     <header className="header">
@@ -33,8 +42,7 @@ export default function Header() {
         </nav>
 
         <div className="header-actions">
-          {/* TODO: isAuthenticated */}
-          {false ? (
+          {isAuthenticated ? (
             <>
               <div className="notif-wrapper">
                 <button
@@ -67,12 +75,17 @@ export default function Header() {
                 {showNotif && <NotificationDropdown onClose={closeNotif} />}
               </div>
               <Link to="/profile" className="action-btn">
-                <img
-                  src={user?.photoURL || "/default-avatar.png"}
-                  alt="profile"
-                  className="avatar-xs"
-                />
+                {profileImage ? (
+                  <img src={profileImage} alt={profileLabel} className="avatar-xs" />
+                ) : (
+                  <span className="avatar-xs avatar-fallback" aria-label={profileLabel}>
+                    {profileLabel.slice(0, 1)}
+                  </span>
+                )}
               </Link>
+              <button type="button" className="logout-btn" onClick={handleSignOut}>
+                로그아웃
+              </button>
             </>
           ) : (
             <Link to="/login" className="btn-primary-sm">
