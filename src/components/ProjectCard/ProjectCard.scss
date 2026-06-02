@@ -1,5 +1,6 @@
 @use "@/styles/variables" as *;
 @use "@/styles/mixins" as *;
 
-.review-write-page {
+.project-card {
+  @include card-hover;
 }
