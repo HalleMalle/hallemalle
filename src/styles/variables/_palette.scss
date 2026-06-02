@@ -1,0 +1,43 @@
+// ─── Color Palette ───
+$primary: #000000;
+$primary-light: #E5E5E5;
+$primary-dark: #f1edec;
+
+$accent: #b5f086;
+$accent-light: #f1edec;
+
+$success: #386a0e;
+$success-light: #daf3c5;
+$warning: #f4a836;
+$danger: #f44336;
+$danger-light: #ffebeb;
+$info: #1945ac;
+$info-light: #ebf1ff;
+
+$gray-50: #f8f9fa;
+$gray-100: #f1f3f5;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #868e96;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+
+$bg-primary: #ffffff;
+$bg-secondary: #f7f6f4;
+$bg-dark: #1a1a2e;
+
+$text-primary: #212529;
+$text-secondary: #6c757d;
+$text-muted: #adb5bd;
+$text-inverse: #ffffff;
+
+// ─── Collaboration Score Colors ───
+$score-low: #74b9ff; // 0-20: 파랑
+$score-medium: #00b894; // 21-40: 초록
+$score-good: #fdcb6e; // 41-70: 노랑
+$score-high: #e17055; // 71-90: 주황
+$score-very-high: #d63031; // 91-100: 빨강
+$score-banned: #747878; // 제재: 회색
