@@ -3,4 +3,102 @@
 
 .login-page {
   @include flex-center;
+  min-height: calc(100vh - #{$header-height});
+  padding: $spacing-3xl $spacing-lg;
+  background: $bg-secondary;
+}
+
+.login-panel {
+  @include flex-column;
+  width: 100%;
+  max-width: 520px;
+  gap: $spacing-lg;
+  padding: $spacing-2xl;
+  background: $bg-primary;
+  border: 1px solid $gray-200;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+}
+
+.login-copy {
+  @include flex-column;
+  gap: $spacing-sm;
+}
+
+.login-eyebrow {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.login-copy h1 {
+  color: $text-primary;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  word-break: keep-all;
+}
+
+.login-description,
+.login-note {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  line-height: $line-height-relaxed;
+  word-break: keep-all;
+}
+
+.login-alert {
+  padding: $spacing-md;
+  color: $danger;
+  background: $danger-light;
+  border: 1px solid rgba($danger, 0.2);
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+}
+
+.github-login-button {
+  @include button-base;
+  width: 100%;
+  min-height: 48px;
+  padding: $spacing-md $spacing-lg;
+  color: $text-inverse;
+  background: $primary;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+
+  &:hover:not(:disabled) {
+    background: $gray-800;
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba($accent, 0.75);
+    outline-offset: 3px;
+  }
+}
+
+.github-login-mark {
+  @include flex-center;
+  @include circle(24px);
+  flex: 0 0 auto;
+  color: $primary;
+  background: $text-inverse;
+  font-size: 10px;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0;
+}
+
+@include mobile {
+  .login-page {
+    align-items: flex-start;
+    padding: $spacing-xl $spacing-md;
+  }
+
+  .login-panel {
+    padding: $spacing-xl;
+  }
+
+  .login-copy h1 {
+    font-size: $font-size-xl;
+  }
 }
