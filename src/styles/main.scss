@@ -1,0 +1,7 @@
+// 외부 컴포넌트에서 다음으로 사용 가능: @use "@/styles/main" as *;
+@forward "variables";
+@forward "mixins";
+@forward "components";
+
+// 전역 스타일
+@use "base/global";
