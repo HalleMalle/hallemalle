@@ -288,8 +288,7 @@
   }
 
   .profile-main-header {
-    display: grid;
-    gap: $spacing-md;
+    gap: $spacing-sm;
   }
 
   .profile-identity {
@@ -324,7 +323,14 @@
   }
 
   .profile-primary-button,
-  .profile-secondary-button {
+  .profile-section-header .profile-secondary-button,
+  .profile-name-controls .profile-secondary-button,
+  .profile-name-controls .profile-primary-button {
     width: 100%;
+  }
+
+  .profile-main-header > .profile-secondary-button {
+    flex: 0 0 auto;
+    width: auto;
   }
 }
