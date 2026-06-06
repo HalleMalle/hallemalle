@@ -224,9 +224,6 @@ export default function Profile() {
                   onChange={handleDisplayNameChange}
                   disabled={isSaving}
                 />
-                <p className='profile-help-text'>
-                  2~20자, 공백 없이 입력해주세요.
-                </p>
                 <button
                   type='submit'
                   className='profile-primary-button'
@@ -243,6 +240,9 @@ export default function Profile() {
                   취소
                 </button>
               </div>
+              <p className='profile-help-text'>
+                2~20자, 공백 없이 입력해주세요.
+              </p>
             </form>
           ) : (
             <p className='profile-display-name'>{profile.display_name}</p>
