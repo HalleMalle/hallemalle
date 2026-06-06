@@ -19,8 +19,8 @@ export default function Header() {
     closeNotif();
   }, [closeNotif, signOut]);
 
-  const profileImage = user?.photoURL || user?.profileImageUrl;
-  const profileLabel = user?.username || user?.displayName || "프로필";
+  const profileImage = user?.photo_url || user?.photoURL || "";
+  const profileLabel = user?.display_name || user?.displayName || user?.github_login || "프로필";
 
   return (
     <header className="header">

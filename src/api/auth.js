@@ -1,4 +1,5 @@
 import {
+  getAdditionalUserInfo,
   GithubAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
@@ -7,54 +8,19 @@ import {
 import {
   doc,
   getDoc,
-  getDocs,
-  limit,
-  query,
   serverTimestamp,
   setDoc,
-  where,
-  collection,
 } from "firebase/firestore";
 import { auth, db, isFirebaseConfigured } from "./firebase";
 
-const USERNAME_ADJECTIVES = [
-  "brave",
-  "calm",
-  "clever",
-  "kind",
-  "steady",
-  "bright",
-  "quick",
-  "solid",
-];
-
-const USERNAME_NOUNS = [
-  "builder",
-  "maker",
-  "coder",
-  "planner",
-  "runner",
-  "leader",
-  "designer",
-  "solver",
-];
-
-const USERNAME_RETRY_LIMIT = 5;
-
-function getRandomItem(items) {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
-export function generateUsername() {
-  const adjective = getRandomItem(USERNAME_ADJECTIVES);
-  const noun = getRandomItem(USERNAME_NOUNS);
-  const suffix = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-
-  return `${adjective}-${noun}-${suffix}`;
-}
-
 function getGithubProviderData(firebaseUser) {
   return firebaseUser.providerData.find((provider) => provider.providerId === "github.com");
+}
+
+function getFallbackGithubLogin(firebaseUser) {
+  const githubProvider = getGithubProviderData(firebaseUser);
+
+  return githubProvider?.uid || firebaseUser.uid;
 }
 
 function toAppUser(firebaseUser, profileData = {}) {
@@ -64,37 +30,14 @@ function toAppUser(firebaseUser, profileData = {}) {
 
   return {
     uid: firebaseUser.uid,
-    email: firebaseUser.email,
-    displayName: firebaseUser.displayName,
-    photoURL: firebaseUser.photoURL,
     ...profileData,
+    email: profileData.email || firebaseUser.email || "",
+    displayName: profileData.display_name || firebaseUser.displayName || "",
+    photoURL: profileData.photo_url || firebaseUser.photoURL || "",
   };
 }
 
-async function isUsernameAvailable(username) {
-  const usernameQuery = query(
-    collection(db, "users"),
-    where("username", "==", username),
-    limit(1),
-  );
-  const snapshot = await getDocs(usernameQuery);
-
-  return snapshot.empty;
-}
-
-async function createUniqueUsername() {
-  for (let attempt = 0; attempt < USERNAME_RETRY_LIMIT; attempt += 1) {
-    const username = generateUsername();
-
-    if (await isUsernameAvailable(username)) {
-      return username;
-    }
-  }
-
-  throw new Error("AUTH-003-USERNAME-FAILED");
-}
-
-export async function ensureUserDoc(firebaseUser) {
+export async function ensureUserDoc(firebaseUser, additionalUserInfo = null) {
   const userRef = doc(db, "users", firebaseUser.uid);
   const userSnapshot = await getDoc(userRef);
 
@@ -102,17 +45,26 @@ export async function ensureUserDoc(firebaseUser) {
     return toAppUser(firebaseUser, userSnapshot.data());
   }
 
-  const githubProvider = getGithubProviderData(firebaseUser);
-  const username = await createUniqueUsername();
+  const githubLogin = additionalUserInfo?.username || getFallbackGithubLogin(firebaseUser);
+  const displayName = firebaseUser.displayName || githubLogin;
+  const email = firebaseUser.email || "";
   const userData = {
-    username,
-    profileImageUrl: firebaseUser.photoURL || null,
-    githubLinked: true,
-    githubUserId: githubProvider?.uid || firebaseUser.uid,
-    githubUsername: githubProvider?.displayName || firebaseUser.displayName || username,
-    githubEmail: firebaseUser.email || null,
-    createdAt: serverTimestamp(),
-    isActive: true,
+    github_login: githubLogin,
+    display_name: displayName,
+    email,
+    photo_url: firebaseUser.photoURL || null,
+    bio: "",
+    collaboration_score: 10.0,
+    tier: "bronze",
+    tier_detail: 1,
+    github_repositories: 0,
+    github_contributions: 0,
+    github_followers: 0,
+    github_stars: 0,
+    github_language_json: {},
+    github_synced_at: null,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
   };
 
   await setDoc(userRef, userData);
@@ -131,7 +83,7 @@ export async function signInWithGithub() {
 
   const credential = await signInWithPopup(auth, provider);
 
-  return ensureUserDoc(credential.user);
+  return ensureUserDoc(credential.user, getAdditionalUserInfo(credential));
 }
 
 export function subscribeToAuthState(onChange, onError) {
