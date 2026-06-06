@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { getMyProfile, updateDisplayName } from '@/api/profile'
+import { getMyProfile, updateProfile } from '@/api/profile'
 import { useAuth } from '@/contexts/AuthContext'
 
 import './Profile.scss'
@@ -52,6 +52,7 @@ export default function Profile() {
   const { user, updateUser } = useAuth()
   const [profile, setProfile] = useState(null)
   const [displayName, setDisplayName] = useState('')
+  const [bio, setBio] = useState('')
   const [isEditingName, setIsEditingName] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -74,6 +75,7 @@ export default function Profile() {
 
         setProfile(nextProfile)
         setDisplayName(nextProfile.display_name || '')
+        setBio(nextProfile.bio || '')
       } catch (error) {
         if (!isMounted) {
           return
@@ -102,12 +104,17 @@ export default function Profile() {
 
   const handleCancelEditName = () => {
     setDisplayName(profile?.display_name || '')
+    setBio(profile?.bio || '')
     setIsEditingName(false)
     setErrorMessage('')
   }
 
   const handleDisplayNameChange = (event) => {
     setDisplayName(event.target.value)
+  }
+
+  const handleBioChange = (event) => {
+    setBio(event.target.value)
   }
 
   const handleDisplayNameSubmit = async (event) => {
@@ -117,13 +124,17 @@ export default function Profile() {
     setSuccessMessage('')
 
     try {
-      const nextProfile = await updateDisplayName(user?.uid, displayName)
+      const nextProfile = await updateProfile(user?.uid, {
+        displayName,
+        bio,
+      })
 
       setProfile(nextProfile)
       setDisplayName(nextProfile.display_name || '')
+      setBio(nextProfile.bio || '')
       updateUser(nextProfile)
       setIsEditingName(false)
-      setSuccessMessage('이름이 변경되었습니다.')
+      setSuccessMessage('프로필이 변경되었습니다.')
     } catch (error) {
       setErrorMessage(getProfileErrorMessage(error))
     } finally {
@@ -224,6 +235,24 @@ export default function Profile() {
                   onChange={handleDisplayNameChange}
                   disabled={isSaving}
                 />
+              </div>
+              <p className='profile-help-text'>
+                이름은 2~20자, 공백 없이 입력해주세요.
+              </p>
+              <label htmlFor='bio'>소개</label>
+              <textarea
+                id='bio'
+                value={bio}
+                maxLength={200}
+                rows={4}
+                onChange={handleBioChange}
+                disabled={isSaving}
+                placeholder='나를 소개하는 문장을 입력해주세요.'
+              />
+              <p className='profile-help-text'>
+                소개는 200자 이내로 입력할 수 있습니다.
+              </p>
+              <div className='profile-name-actions'>
                 <button
                   type='submit'
                   className='profile-primary-button'
@@ -240,9 +269,6 @@ export default function Profile() {
                   취소
                 </button>
               </div>
-              <p className='profile-help-text'>
-                2~20자, 공백 없이 입력해주세요.
-              </p>
             </form>
           ) : (
             <p className='profile-display-name'>{profile.display_name}</p>

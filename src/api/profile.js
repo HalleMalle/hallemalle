@@ -9,6 +9,7 @@ import { db, isFirebaseConfigured } from "./firebase";
 
 const DISPLAY_NAME_MIN_LENGTH = 2;
 const DISPLAY_NAME_MAX_LENGTH = 20;
+const BIO_MAX_LENGTH = 200;
 
 function createProfileError(code, message) {
   const error = new Error(message);
@@ -50,6 +51,20 @@ function validateDisplayName(displayName) {
   return normalizedDisplayName;
 }
 
+function normalizeBio(bio) {
+  return String(bio ?? "").trim();
+}
+
+function validateBio(bio) {
+  const normalizedBio = normalizeBio(bio);
+
+  if (normalizedBio.length > BIO_MAX_LENGTH) {
+    throw createProfileError("PROF-003-INVALID-BIO", "소개는 200자 이내로 입력해주세요.");
+  }
+
+  return normalizedBio;
+}
+
 function toProfile(uid, profileData) {
   return {
     uid,
@@ -73,15 +88,17 @@ export async function getMyProfile(uid) {
   return toProfile(uid, userSnapshot.data());
 }
 
-export async function updateDisplayName(uid, displayName) {
+export async function updateProfile(uid, profile) {
   assertFirebaseConfigured();
   assertAuthenticatedUser(uid, "PROF-002-UNAUTHENTICATED");
 
-  const nextDisplayName = validateDisplayName(displayName);
+  const nextDisplayName = validateDisplayName(profile?.displayName);
+  const nextBio = validateBio(profile?.bio);
   const userRef = doc(db, "users", uid);
 
   await updateDoc(userRef, {
     display_name: nextDisplayName,
+    bio: nextBio,
     updated_at: serverTimestamp(),
   });
 

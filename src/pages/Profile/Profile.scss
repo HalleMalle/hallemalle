@@ -134,16 +134,44 @@
 .profile-name-form {
   label {
     display: block;
-    margin-bottom: $spacing-sm;
+    margin: $spacing-md 0 $spacing-sm;
     color: $text-secondary;
     font-size: $font-size-sm;
     font-weight: $font-weight-semibold;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 104px;
+    resize: vertical;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    padding: $spacing-sm $spacing-md;
+    background: $bg-primary;
+    color: $text-primary;
+    font: inherit;
+    line-height: $line-height-normal;
+
+    &:focus {
+      border-color: $primary;
+      outline: 2px solid rgba($primary, 0.12);
+      outline-offset: 1px;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
   }
 }
 
 .profile-name-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: $spacing-sm;
 
   input {
@@ -164,10 +192,21 @@
   }
 }
 
+.profile-name-actions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: flex-end;
+  margin-top: $spacing-md;
+}
+
 .profile-help-text,
 .profile-message {
   margin-top: $spacing-sm;
   font-size: $font-size-sm;
+}
+
+.profile-help-text + label {
+  margin-top: $spacing-lg;
 }
 
 .profile-help-text {
@@ -324,9 +363,16 @@
 
   .profile-primary-button,
   .profile-section-header .profile-secondary-button,
+  .profile-name-actions .profile-secondary-button,
+  .profile-name-actions .profile-primary-button,
   .profile-name-controls .profile-secondary-button,
   .profile-name-controls .profile-primary-button {
     width: 100%;
+  }
+
+  .profile-name-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .profile-main-header > .profile-secondary-button {
