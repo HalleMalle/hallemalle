@@ -31,10 +31,10 @@ export default function Home() {
             지금 바로 팀을 찾거나, 새로운 프로젝트를 시작하세요.
           </p>
           <div className="hero-actions">
-            <Link to="/project-list" className="btn-primary">
+            <Link to="/togethers" className="btn-primary">
               프로젝트 둘러보기
             </Link>
-            <Link to="/project/create" className="btn-outline">
+            <Link to="/togethers/write" className="btn-outline">
               새 프로젝트 만들기
             </Link>
           </div>
@@ -160,7 +160,7 @@ export default function Home() {
       <AnimatedSection className="cta-section">
         <h2>지금 바로 시작하세요</h2>
         <p>당신의 아이디어를 현실로 만들어줄 팀을 기다리고 있습니다.</p>
-        <Link to="/login" className="btn-primary btn-lg">
+        <Link to="/togethers" className="btn-primary btn-lg">
           시작하기
         </Link>
       </AnimatedSection>
