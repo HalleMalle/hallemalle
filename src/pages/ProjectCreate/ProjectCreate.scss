@@ -1,4 +1,90 @@
 @use "@/styles/main" as *;
 
 .project-create-page {
+  min-height: 100vh;
+  background-color: #fafafa;
+  padding: 40px 24px 80px;
+}
+
+.pc-layout {
+  display: flex;
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+  align-items: flex-start;
+}
+
+// ── 사이드바 ────────────────────────────────────────
+.pc-sidebar {
+  flex-shrink: 0;
+  width: 200px;
+  position: sticky;
+  top: 40px;
+
+  &__header {
+    margin-bottom: 20px;
+  }
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 4px;
+    letter-spacing: -0.3px;
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: #888;
+    margin: 0;
+  }
+
+  &__draft {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  &__draft-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: #111;
+    margin: 0 0 6px;
+  }
+
+  &__draft-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+// ── 메인 영역 ────────────────────────────────────────
+.pc-main {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 32px 36px;
+}
+
+// ── 반응형 ────────────────────────────────────────────
+@media (max-width: 720px) {
+  .pc-layout {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .pc-sidebar {
+    width: 100%;
+    position: static;
+  }
+
+  .pc-main {
+    padding: 24px 20px;
+  }
 }

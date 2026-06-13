@@ -38,13 +38,13 @@ export default function AppRouter() {
               <Route
                 path="/togethers/write"
                 element={
-                  <ProtectedRoute>
-                    <ProjectCreate />
-                  </ProtectedRoute>
+                  // <ProtectedRoute>
+                  <ProjectCreate />
+                  // </ProtectedRoute>
                 }
               />
               <Route
-                path="/togethers/:id/edit" 
+                path="/togethers/:id/edit"
                 element={
                   <ProtectedRoute>
                     <ProjectEdit />
@@ -78,17 +78,13 @@ export default function AppRouter() {
               <Route
                 path="/profile/responses"
                 element={
-                  <ProtectedRoute>
-                    {/* <ResponseList /> */}
-                  </ProtectedRoute>
+                  <ProtectedRoute>{/* <ResponseList /> */}</ProtectedRoute>
                 }
               />
               <Route
                 path="/profile/requests"
                 element={
-                  <ProtectedRoute>
-                    {/* <RequestList /> */}
-                  </ProtectedRoute>
+                  <ProtectedRoute>{/* <RequestList /> */}</ProtectedRoute>
                 }
               />
               <Route
