@@ -11,6 +11,36 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const signIn = useCallback(async () => {
+    const nextUser = await signInWithGithub();
+    setUser(nextUser);
+    return nextUser;
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await signOutFromFirebase();
+    setUser(null);
+  }, []);
+
+  const updateUser = useCallback((nextUserData) => {
+    setUser((currentUser) => ({
+      ...currentUser,
+      ...nextUserData,
+    }));
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      signIn,
+      signOut,
+      updateUser,
+      isAuthenticated: Boolean(user),
+    }),
+    [loading, signIn, signOut, updateUser, user],
+  );
+
   useEffect(() => {
     let isMounted = true;
 
@@ -38,28 +68,6 @@ export function AuthProvider({ children }) {
       unsubscribe();
     };
   }, []);
-
-  const signIn = useCallback(async () => {
-    const nextUser = await signInWithGithub();
-    setUser(nextUser);
-    return nextUser;
-  }, []);
-
-  const signOut = useCallback(async () => {
-    await signOutFromFirebase();
-    setUser(null);
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      user,
-      loading,
-      signIn,
-      signOut,
-      isAuthenticated: Boolean(user),
-    }),
-    [loading, signIn, signOut, user],
-  );
 
   return (
     <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

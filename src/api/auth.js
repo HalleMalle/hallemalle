@@ -10,6 +10,7 @@ import {
   getDoc,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { auth, db, isFirebaseConfigured } from "./firebase";
 
@@ -17,10 +18,38 @@ function getGithubProviderData(firebaseUser) {
   return firebaseUser.providerData.find((provider) => provider.providerId === "github.com");
 }
 
-function getFallbackGithubLogin(firebaseUser) {
+function getGithubProfile(additionalUserInfo) {
+  return additionalUserInfo?.profile || {};
+}
+
+function getFallbackGithubId(firebaseUser) {
   const githubProvider = getGithubProviderData(firebaseUser);
 
   return githubProvider?.uid || firebaseUser.uid;
+}
+
+function normalizeGithubId(githubId) {
+  const numericGithubId = Number(githubId);
+
+  return Number.isSafeInteger(numericGithubId) ? numericGithubId : githubId;
+}
+
+function getGithubLogin(firebaseUser, additionalUserInfo) {
+  const githubProfile = getGithubProfile(additionalUserInfo);
+
+  return (
+    githubProfile.login ||
+    additionalUserInfo?.username ||
+    firebaseUser.reloadUserInfo?.screenName ||
+    firebaseUser.displayName ||
+    firebaseUser.uid
+  );
+}
+
+function getGithubId(firebaseUser, additionalUserInfo) {
+  const githubProfile = getGithubProfile(additionalUserInfo);
+
+  return normalizeGithubId(githubProfile.id || getFallbackGithubId(firebaseUser));
 }
 
 function toAppUser(firebaseUser, profileData = {}) {
@@ -37,23 +66,61 @@ function toAppUser(firebaseUser, profileData = {}) {
   };
 }
 
+async function syncGithubIdentity(userRef, firebaseUser, additionalUserInfo, profileData) {
+  if (!additionalUserInfo?.profile) {
+    return profileData;
+  }
+
+  const githubLogin = getGithubLogin(firebaseUser, additionalUserInfo);
+  const githubId = getGithubId(firebaseUser, additionalUserInfo);
+
+  if (profileData.github_login === githubLogin && profileData.github_id === githubId) {
+    return profileData;
+  }
+
+  const nextProfileData = {
+    ...profileData,
+    github_login: githubLogin,
+    github_id: githubId,
+    updated_at: serverTimestamp(),
+  };
+
+  await updateDoc(userRef, {
+    github_login: githubLogin,
+    github_id: githubId,
+    updated_at: serverTimestamp(),
+  });
+
+  return nextProfileData;
+}
+
 export async function ensureUserDoc(firebaseUser, additionalUserInfo = null) {
   const userRef = doc(db, "users", firebaseUser.uid);
   const userSnapshot = await getDoc(userRef);
 
   if (userSnapshot.exists()) {
-    return toAppUser(firebaseUser, userSnapshot.data());
+    const profileData = await syncGithubIdentity(
+      userRef,
+      firebaseUser,
+      additionalUserInfo,
+      userSnapshot.data(),
+    );
+
+    return toAppUser(firebaseUser, profileData);
   }
 
-  const githubLogin = additionalUserInfo?.username || getFallbackGithubLogin(firebaseUser);
+  const githubLogin = getGithubLogin(firebaseUser, additionalUserInfo);
+  const githubId = getGithubId(firebaseUser, additionalUserInfo);
+  const githubProfile = getGithubProfile(additionalUserInfo);
   const displayName = firebaseUser.displayName || githubLogin;
   const email = firebaseUser.email || "";
   const userData = {
     github_login: githubLogin,
+    github_id: githubId,
     display_name: displayName,
     email,
     photo_url: firebaseUser.photoURL || null,
-    bio: "",
+    bio: githubProfile.bio || "",
     collaboration_score: 10.0,
     tier: "bronze",
     tier_detail: 1,
