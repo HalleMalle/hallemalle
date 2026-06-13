@@ -433,7 +433,7 @@ export default function ProjectForm({
                 onChange={(e) => handleDocVisibility(file.name, e.target.value)}
               >
                 <option value="public">🔓 전체 공개</option>
-                <option value="approved">🔒 승인한 사람만 공개</option>
+                <option value="approved">🔒 승인한 사용자만 공개</option>
               </select>
             </div>
             <button
