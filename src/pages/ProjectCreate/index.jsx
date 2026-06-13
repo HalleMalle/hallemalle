@@ -34,24 +34,27 @@ export default function ProjectCreate() {
 
   return (
     <div className="project-create-page">
-      <div className="pc-layout">
+      <div className="project-create-page-layout">
         {/* 좌측 사이드바 */}
-        <aside className="pc-sidebar">
-          <div className="pc-sidebar__header">
-            <h1 className="pc-sidebar__title">새 프로젝트</h1>
-            <p className="pc-sidebar__subtitle">단계별 모집</p>
+        <aside className="project-create-page-sidebar">
+          <div className="project-create-page-sidebar__header">
+            <h1 className="project-create-page-sidebar__title">새 프로젝트</h1>
+            <p className="project-create-page-sidebar__subtitle">
+              프로젝트 생성 페이지
+            </p>
           </div>
 
-          {/* <div className="pc-sidebar__draft">
-            <p className="pc-sidebar__draft-label">DRAFT SAVED</p>
-            <p className="pc-sidebar__draft-desc">
-              Last saved at 14:02 today. You can return to this later.
+          <div className="project-create-page-sidebar__draft">
+            <p className="project-create-page-sidebar__draft-label">생성</p>
+            <p className="project-create-page-sidebar__draft-desc">
+              {new Date().toLocaleDateString()} 기준으로 프로젝트 작성을
+              시작하셨습니다.
             </p>
-          </div> */}
+          </div>
         </aside>
 
         {/* 메인 폼 영역 */}
-        <main className="pc-main">
+        <main className="project-create-page-main">
           <ProjectForm
             onSubmit={handleSubmit}
             onCancel={handleCancel}

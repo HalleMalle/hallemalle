@@ -6,7 +6,7 @@
   padding: 40px 24px 80px;
 }
 
-.pc-layout {
+.project-create-page-layout {
   display: flex;
   gap: 40px;
   max-width: 1000px;
@@ -14,8 +14,7 @@
   align-items: flex-start;
 }
 
-// ── 사이드바 ────────────────────────────────────────
-.pc-sidebar {
+.project-create-page-sidebar {
   flex-shrink: 0;
   width: 200px;
   position: sticky;
@@ -62,8 +61,7 @@
   }
 }
 
-// ── 메인 영역 ────────────────────────────────────────
-.pc-main {
+.project-create-page-main {
   flex: 1;
   min-width: 0;
   background: #fff;
@@ -72,19 +70,18 @@
   padding: 32px 36px;
 }
 
-// ── 반응형 ────────────────────────────────────────────
 @media (max-width: 720px) {
-  .pc-layout {
+  .project-create-page-layout {
     flex-direction: column;
     gap: 20px;
   }
 
-  .pc-sidebar {
+  .project-create-page-sidebar {
     width: 100%;
     position: static;
   }
 
-  .pc-main {
+  .project-create-page-main {
     padding: 24px 20px;
   }
 }
