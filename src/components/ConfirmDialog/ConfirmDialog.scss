@@ -1,0 +1,75 @@
+@use "@/styles/main" as *;
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.confirm-dialog {
+  width: 100%;
+  max-width: 24rem;
+  padding: $spacing-xl;
+  border-radius: $radius-lg;
+  background: $bg-primary;
+  box-shadow: $shadow-xl;
+}
+
+.confirm-dialog-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+}
+
+.confirm-dialog-message {
+  margin-top: $spacing-sm;
+  color: $text-secondary;
+  line-height: $line-height-normal;
+}
+
+.confirm-dialog-error {
+  margin-top: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background: $danger-light;
+  color: $danger;
+  font-size: $font-size-sm;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-lg;
+}
+
+.confirm-dialog-confirm {
+  @include button-base;
+
+  flex: 1;
+  background: $danger;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+
+  &:focus-visible {
+    outline: 2px solid $danger;
+    outline-offset: 2px;
+  }
+}
+
+.confirm-dialog-cancel {
+  @include button-base;
+
+  flex: 1;
+  border: 1px solid $gray-300;
+  background: $bg-primary;
+  color: $text-secondary;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}

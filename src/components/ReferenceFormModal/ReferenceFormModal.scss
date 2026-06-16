@@ -1,0 +1,132 @@
+@use "@/styles/main" as *;
+
+.reference-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.reference-modal {
+  width: 100%;
+  max-width: 32rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: $spacing-xl;
+  border-radius: $radius-lg;
+  background: $bg-primary;
+  box-shadow: $shadow-xl;
+  @include custom-scrollbar;
+}
+
+.reference-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+
+  h2 {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+  }
+}
+
+.reference-modal-close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: $radius-full;
+  background: transparent;
+  color: $text-secondary;
+  font-size: $font-size-xl;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: $gray-100;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-modal-form {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    margin-bottom: $spacing-xs;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  input,
+  textarea {
+    @include input-base;
+
+    margin-bottom: $spacing-md;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+}
+
+.reference-modal-help {
+  margin-top: -$spacing-xs;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.reference-modal-error {
+  margin-bottom: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background: $danger-light;
+  color: $danger;
+  font-size: $font-size-sm;
+}
+
+.reference-modal-actions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-xs;
+}
+
+.reference-modal-submit {
+  @include button-base;
+
+  flex: 1;
+  background: $primary;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-modal-cancel {
+  @include button-base;
+
+  flex: 1;
+  border: 1px solid $gray-300;
+  background: $bg-primary;
+  color: $text-secondary;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}

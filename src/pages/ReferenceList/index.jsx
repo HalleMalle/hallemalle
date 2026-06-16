@@ -1,5 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import ConfirmDialog from '@/components/ConfirmDialog'
+import ReferenceFormModal from '@/components/ReferenceFormModal'
+import { useAuth } from '@/contexts/AuthContext'
+import useReferenceMutations from '@/hooks/useReferenceMutations'
 import useReferences from '@/hooks/useReferences'
 
 import './ReferenceList.scss'
@@ -19,7 +24,14 @@ function formatCreatedAt(createdAt) {
   return ''
 }
 
-function ReferenceCard({ reference, onToggleScrap, onToggleLike }) {
+function ReferenceCard({
+  reference,
+  canManage,
+  onToggleScrap,
+  onToggleLike,
+  onEdit,
+  onDelete,
+}) {
   const {
     referenceId,
     title,
@@ -64,6 +76,25 @@ function ReferenceCard({ reference, onToggleScrap, onToggleLike }) {
         </ul>
       )}
 
+      {canManage && (
+        <div className='reference-card-owner-actions'>
+          <button
+            type='button'
+            className='reference-card-owner-button'
+            onClick={() => onEdit(reference)}
+          >
+            수정
+          </button>
+          <button
+            type='button'
+            className='reference-card-owner-button reference-card-owner-button-danger'
+            onClick={() => onDelete(reference)}
+          >
+            삭제
+          </button>
+        </div>
+      )}
+
       <div className='reference-card-footer'>
         <button
           type='button'
@@ -88,6 +119,9 @@ function ReferenceCard({ reference, onToggleScrap, onToggleLike }) {
 }
 
 export default function ReferenceList() {
+  const { user } = useAuth()
+  const uid = user?.uid
+
   const {
     references,
     isLoading,
@@ -98,10 +132,76 @@ export default function ReferenceList() {
     setView,
     toggleScrap,
     toggleLike,
+    reload,
   } = useReferences()
+
+  const {
+    create,
+    update,
+    remove,
+    isSubmitting,
+    errorMessage: mutationError,
+    resetError,
+  } = useReferenceMutations()
+
+  const [formModal, setFormModal] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const isScrappedView = view === 'SCRAPPED'
   const actionError = scrapError || likeError
+
+  const openCreate = () => {
+    resetError()
+    setFormModal({ mode: 'create', reference: null })
+  }
+
+  const openEdit = (reference) => {
+    resetError()
+    setFormModal({ mode: 'edit', reference })
+  }
+
+  const closeFormModal = () => {
+    setFormModal(null)
+    resetError()
+  }
+
+  const openDelete = (reference) => {
+    resetError()
+    setDeleteTarget(reference)
+  }
+
+  const closeDelete = () => {
+    setDeleteTarget(null)
+    resetError()
+  }
+
+  const handleFormSubmit = async (values) => {
+    try {
+      if (formModal?.mode === 'edit') {
+        await update({
+          referenceId: formModal.reference.referenceId,
+          ...values,
+        })
+      } else {
+        await create(values)
+      }
+
+      closeFormModal()
+      await reload()
+    } catch {
+      // 실패 메시지는 모달의 mutationError로 표시되고 모달은 열린 채 유지된다.
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await remove({ referenceId: deleteTarget.referenceId })
+      setDeleteTarget(null)
+      await reload()
+    } catch {
+      // 실패 메시지는 확인 모달의 mutationError로 표시된다.
+    }
+  }
 
   return (
     <main className='reference-list-page'>
@@ -113,6 +213,15 @@ export default function ReferenceList() {
             다른 사용자가 고안한 프로젝트 주제를 탐색하고, 마음에 드는 주제는
             추천하거나 찜해 두세요.
           </p>
+          {uid && (
+            <button
+              type='button'
+              className='reference-list-add'
+              onClick={openCreate}
+            >
+              + 주제 추가
+            </button>
+          )}
         </header>
 
         <div
@@ -178,11 +287,23 @@ export default function ReferenceList() {
                   아직 등록된 참고 주제가 없어요.
                 </p>
                 <p className='reference-list-empty-description'>
-                  구인 글을 둘러보며 협업 아이디어를 찾아보세요.
+                  {uid
+                    ? '첫 프로젝트 주제를 추가해보세요.'
+                    : '구인 글을 둘러보며 협업 아이디어를 찾아보세요.'}
                 </p>
-                <Link to='/togethers' className='reference-list-empty-link'>
-                  구인 둘러보기
-                </Link>
+                {uid ? (
+                  <button
+                    type='button'
+                    className='reference-list-empty-link'
+                    onClick={openCreate}
+                  >
+                    주제 추가하기
+                  </button>
+                ) : (
+                  <Link to='/togethers' className='reference-list-empty-link'>
+                    구인 둘러보기
+                  </Link>
+                )}
               </>
             )}
           </div>
@@ -192,14 +313,40 @@ export default function ReferenceList() {
               <li key={reference.referenceId}>
                 <ReferenceCard
                   reference={reference}
+                  canManage={Boolean(uid) && reference.createdBy === uid}
                   onToggleScrap={toggleScrap}
                   onToggleLike={toggleLike}
+                  onEdit={openEdit}
+                  onDelete={openDelete}
                 />
               </li>
             ))}
           </ul>
         )}
       </div>
+
+      {formModal && (
+        <ReferenceFormModal
+          mode={formModal.mode}
+          initialValues={formModal.reference}
+          isSubmitting={isSubmitting}
+          errorMessage={mutationError}
+          onSubmit={handleFormSubmit}
+          onClose={closeFormModal}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title='참고 주제 삭제'
+          message={`'${deleteTarget.title}' 주제를 삭제할까요? 삭제하면 되돌릴 수 없습니다.`}
+          confirmLabel='삭제'
+          isBusy={isSubmitting}
+          errorMessage={mutationError}
+          onConfirm={handleDeleteConfirm}
+          onClose={closeDelete}
+        />
+      )}
     </main>
   )
 }

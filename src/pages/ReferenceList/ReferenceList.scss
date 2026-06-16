@@ -27,6 +27,22 @@
   line-height: $line-height-normal;
 }
 
+.reference-list-add {
+  @include button-base;
+
+  margin-top: $spacing-md;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
 .reference-list-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -208,6 +224,38 @@
   background: $gray-100;
   color: $text-secondary;
   font-size: $font-size-xs;
+}
+
+.reference-card-owner-actions {
+  display: flex;
+  gap: $spacing-xs;
+  justify-content: flex-end;
+}
+
+.reference-card-owner-button {
+  @include button-base;
+
+  padding: $spacing-xs $spacing-sm;
+  background: transparent;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-card-owner-button-danger {
+  color: $danger;
+
+  &:hover {
+    color: $danger;
+  }
 }
 
 .reference-card-footer {
