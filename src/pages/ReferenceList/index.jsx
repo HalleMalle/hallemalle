@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import ConfirmDialog from '@/components/ConfirmDialog'
 import ReferenceFormModal from '@/components/ReferenceFormModal'
@@ -121,6 +121,7 @@ function ReferenceCard({
 export default function ReferenceList() {
   const { user } = useAuth()
   const uid = user?.uid
+  const navigate = useNavigate()
 
   const {
     references,
@@ -149,6 +150,17 @@ export default function ReferenceList() {
 
   const isScrappedView = view === 'SCRAPPED'
   const actionError = scrapError || likeError
+
+  // 비로그인 사용자가 '내가 찜한' 탭을 누르면 추천·찜과 동일하게 로그인 페이지로 보낸다.
+  // 탭 자체는 비로그인 상태에서도 노출을 유지한다.
+  const handleSelectView = (value) => {
+    if (value === 'SCRAPPED' && !uid) {
+      navigate('/login')
+      return
+    }
+
+    setView(value)
+  }
 
   const openCreate = () => {
     resetError()
@@ -239,7 +251,7 @@ export default function ReferenceList() {
                   : 'reference-list-tab'
               }
               aria-pressed={view === tab.value}
-              onClick={() => setView(tab.value)}
+              onClick={() => handleSelectView(tab.value)}
             >
               {tab.label}
             </button>
