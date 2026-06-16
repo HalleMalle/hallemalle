@@ -204,6 +204,11 @@
   gap: $spacing-md;
 }
 
+.portfolio-language-summary {
+  display: grid;
+  gap: $spacing-md;
+}
+
 .portfolio-language-row {
   display: grid;
   gap: $spacing-sm;
@@ -268,6 +273,12 @@
   font-size: $font-size-sm;
 }
 
+.portfolio-usage-evidence {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+}
+
 .portfolio-info-list {
   display: grid;
   gap: $spacing-md;
@@ -289,6 +300,10 @@
     line-height: $line-height-normal;
     word-break: break-word;
   }
+}
+
+.portfolio-info-list-compact {
+  margin-top: $spacing-xl;
 }
 
 .portfolio-repository-list {

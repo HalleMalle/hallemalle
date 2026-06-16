@@ -36,6 +36,14 @@ function formatSyncedAt(value) {
   })
 }
 
+function formatEvidence(value) {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).join(', ')
+  }
+
+  return value || ''
+}
+
 function PortfolioMetric({ label, value, description }) {
   return (
     <div className='portfolio-metric'>
@@ -62,24 +70,27 @@ function RepositoryItem({ repository }) {
   )
 }
 
-function LanguageBar({ language, ratio, index }) {
+function UsageBar({ label, ratio, index, description }) {
   const width = Math.max(Number(ratio || 0), 2)
 
   return (
     <div className='portfolio-language-row'>
       <div className='portfolio-language-meta'>
-        <span>{language}</span>
+        <span>{label}</span>
         <strong>{ratio}%</strong>
       </div>
       <div
         className='portfolio-language-track'
-        aria-label={`${language} ${ratio}%`}
+        aria-label={`${label} ${ratio}%`}
       >
         <span
           className={`portfolio-language-fill portfolio-language-fill-${(index % 5) + 1}`}
           style={{ width: `${width}%` }}
         />
       </div>
+      {description && (
+        <p className='portfolio-usage-evidence'>{description}</p>
+      )}
     </div>
   )
 }
@@ -139,14 +150,27 @@ export default function Portfolio() {
       )),
     [profile?.github_language_json],
   )
+  const frameworkEntries = useMemo(
+    () => Object.entries(profile?.github_framework_json || {})
+      .filter(([, ratio]) => Number(ratio) > 0)
+      .sort(([, firstRatio], [, secondRatio]) => (
+        Number(secondRatio) - Number(firstRatio)
+      )),
+    [profile?.github_framework_json],
+  )
 
   const dominantLanguage = languageEntries[0]?.[0] || '분석 전'
+  const dominantFramework = frameworkEntries[0]?.[0] || '분석 전'
   const hasSyncedPortfolio = Boolean(profile?.github_synced_at)
   const commitFileStats = profile?.github_commit_file_stats || {}
   const contributedRepositories = profile?.github_contributed_repositories || []
+  const frameworkEvidence = profile?.github_framework_evidence || {}
   const syncSourceLabel = profile?.github_language_source === 'COMMIT_FILES'
     ? '커밋 변경 파일 기준'
     : '저장소 언어 기준'
+  const frameworkSourceLabel = profile?.github_framework_source
+    ? '커밋 변경 파일 및 의존성 기준'
+    : '분석 전'
   const avatarLabel =
     profile?.display_name || profile?.github_login || DEFAULT_AVATAR_LABEL
   const avatarImage = profile?.photo_url || profile?.photoURL || ''
@@ -339,17 +363,42 @@ export default function Portfolio() {
           <div className='portfolio-panel portfolio-language-panel'>
             <div className='portfolio-section-header'>
               <div>
-                <h2 id='portfolio-detail-title'>언어 구성</h2>
-                <p>커밋에서 실제로 변경한 파일의 확장자와 변경량 기준입니다.</p>
+                <h2 id='portfolio-detail-title'>주요 Framework</h2>
+                <p>커밋 변경 파일과 의존성 manifest를 기반으로 추정한 사용 스택입니다.</p>
+              </div>
+            </div>
+
+            {frameworkEntries.length ? (
+              <div className='portfolio-language-list'>
+                {frameworkEntries.map(([framework, ratio], index) => (
+                  <UsageBar
+                    key={framework}
+                    label={framework}
+                    ratio={ratio}
+                    index={index}
+                    description={formatEvidence(frameworkEvidence[framework])}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyPanel>Framework 분석은 동기화 후 표시됩니다.</EmptyPanel>
+            )}
+          </div>
+
+          <div className='portfolio-panel'>
+            <div className='portfolio-section-header'>
+              <div>
+                <h2>언어 구성</h2>
+                <p>커밋에서 실제로 변경한 파일 기준입니다.</p>
               </div>
             </div>
 
             {languageEntries.length ? (
-              <div className='portfolio-language-list'>
-                {languageEntries.map(([language, ratio], index) => (
-                  <LanguageBar
+              <div className='portfolio-language-summary'>
+                {languageEntries.slice(0, 5).map(([language, ratio], index) => (
+                  <UsageBar
                     key={language}
-                    language={language}
+                    label={language}
                     ratio={ratio}
                     index={index}
                   />
@@ -358,36 +407,23 @@ export default function Portfolio() {
             ) : (
               <EmptyPanel>언어 비율은 동기화 후 표시됩니다.</EmptyPanel>
             )}
-          </div>
 
-          <div className='portfolio-panel'>
-            <div className='portfolio-section-header'>
+            <dl className='portfolio-info-list portfolio-info-list-compact'>
               <div>
-                <h2>프로필 세부 정보</h2>
-                <p>지원자 판단에 활용할 수 있는 기본 정보입니다.</p>
-              </div>
-            </div>
-
-            <dl className='portfolio-info-list'>
-              <div>
-                <dt>GitHub 계정</dt>
-                <dd>{profile.github_login || '연결 필요'}</dd>
+                <dt>대표 Framework</dt>
+                <dd>{dominantFramework}</dd>
               </div>
               <div>
                 <dt>대표 언어</dt>
                 <dd>{dominantLanguage}</dd>
               </div>
               <div>
-                <dt>분석 기준</dt>
+                <dt>Framework 기준</dt>
+                <dd>{frameworkSourceLabel}</dd>
+              </div>
+              <div>
+                <dt>언어 기준</dt>
                 <dd>{syncSourceLabel}</dd>
-              </div>
-              <div>
-                <dt>소개</dt>
-                <dd>{profile.bio || '등록된 소개가 없습니다.'}</dd>
-              </div>
-              <div>
-                <dt>동기화 상태</dt>
-                <dd>{hasSyncedPortfolio ? '완료' : '필요'}</dd>
               </div>
             </dl>
           </div>

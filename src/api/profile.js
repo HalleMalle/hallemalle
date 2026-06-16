@@ -21,6 +21,16 @@ const GITHUB_CONTRIBUTION_REPOSITORY_LIMIT = 50;
 const GITHUB_REPOSITORY_COMMIT_LIMIT = 100;
 const GITHUB_TOTAL_COMMIT_DETAIL_LIMIT = 500;
 const GITHUB_COMMIT_DETAIL_CONCURRENCY = 4;
+const GITHUB_MANIFEST_FETCH_REPOSITORY_LIMIT = 30;
+const GITHUB_MANIFEST_PATHS = [
+  "package.json",
+  "requirements.txt",
+  "pyproject.toml",
+  "Pipfile",
+  "pom.xml",
+  "build.gradle",
+  "build.gradle.kts",
+];
 const GITHUB_IGNORED_PATH_SEGMENTS = new Set([
   "node_modules",
   "vendor",
@@ -111,6 +121,104 @@ const GITHUB_LANGUAGE_BY_EXTENSION = {
   astro: "Astro",
   dockerfile: "Dockerfile",
 };
+const FRAMEWORK_DETECTORS = [
+  {
+    name: "React",
+    weight: 8,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /\.(jsx|tsx)$/,
+      /(^|\/)src\/components\//,
+    ],
+    tokens: ["react", "react-dom", "@vitejs/plugin-react"],
+  },
+  {
+    name: "Next.js",
+    weight: 9,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)next\.config\.(js|mjs|ts)$/,
+      /(^|\/)app\/.*\.(js|jsx|ts|tsx)$/,
+      /(^|\/)pages\/.*\.(js|jsx|ts|tsx)$/,
+    ],
+    tokens: ["next"],
+  },
+  {
+    name: "Node.js",
+    weight: 6,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)server\.(js|ts|mjs)$/,
+      /(^|\/)src\/server\//,
+    ],
+    tokens: ["node", "express", "fastify", "nestjs", "@nestjs/core"],
+  },
+  {
+    name: "Express",
+    weight: 8,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)server\.(js|ts|mjs)$/,
+      /(^|\/)app\.(js|ts|mjs)$/,
+    ],
+    tokens: ["express"],
+  },
+  {
+    name: "Spring Boot",
+    weight: 10,
+    patterns: [
+      /(^|\/)pom\.xml$/,
+      /(^|\/)build\.gradle(\.kts)?$/,
+      /src\/main\/java\//,
+      /src\/main\/kotlin\//,
+    ],
+    tokens: ["spring-boot", "springframework.boot", "spring-boot-starter"],
+  },
+  {
+    name: "FastAPI",
+    weight: 10,
+    patterns: [
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /(^|\/)main\.py$/,
+      /(^|\/)app\/main\.py$/,
+    ],
+    tokens: ["fastapi", "uvicorn"],
+  },
+  {
+    name: "Django",
+    weight: 10,
+    patterns: [
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /(^|\/)manage\.py$/,
+      /(^|\/)settings\.py$/,
+    ],
+    tokens: ["django", "djangorestframework"],
+  },
+  {
+    name: "PyTorch",
+    weight: 9,
+    patterns: [
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /\.ipynb$/,
+      /(^|\/)models?\//,
+    ],
+    tokens: ["torch", "pytorch", "torchvision", "torchaudio"],
+  },
+  {
+    name: "TensorFlow",
+    weight: 9,
+    patterns: [
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /\.ipynb$/,
+      /(^|\/)models?\//,
+    ],
+    tokens: ["tensorflow", "keras"],
+  },
+];
 
 function createProfileError(code, message) {
   const error = new Error(message);
@@ -328,6 +436,20 @@ function normalizeLanguageSummary(languageChanges) {
   );
 }
 
+function normalizeRatioSummary(weightMap) {
+  const totalWeight = Object.values(weightMap).reduce((total, weight) => total + weight, 0);
+
+  if (!totalWeight) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(weightMap)
+      .sort(([, firstWeight], [, secondWeight]) => secondWeight - firstWeight)
+      .map(([label, weight]) => [label, Math.round((weight / totalWeight) * 100)]),
+  );
+}
+
 function createEmptyCommitFileStats() {
   return {
     totalCommits: 0,
@@ -374,6 +496,162 @@ function aggregateCommitFileLanguages(commitDetails) {
     languageSummary: normalizeLanguageSummary(languageChanges),
     languageChanges,
     stats,
+  };
+}
+
+function getFrameworkEvidenceText(detector, filename, matchedByPatch) {
+  const fileName = getFileName(filename);
+
+  if (matchedByPatch) {
+    return `${fileName} 의존성 변경`;
+  }
+
+  return `${fileName} 파일 패턴`;
+}
+
+function addFrameworkMatch(frameworkWeights, frameworkEvidence, detector, weight, evidence) {
+  frameworkWeights[detector.name] = (frameworkWeights[detector.name] || 0) + weight;
+  frameworkEvidence[detector.name] = frameworkEvidence[detector.name] || [];
+
+  if (!frameworkEvidence[detector.name].includes(evidence)) {
+    frameworkEvidence[detector.name].push(evidence);
+  }
+}
+
+function analyzeCommitFileFrameworks(commitDetails) {
+  const frameworkWeights = {};
+  const frameworkEvidence = {};
+
+  commitDetails.forEach((commitDetail) => {
+    const files = Array.isArray(commitDetail.files) ? commitDetail.files : [];
+
+    files.forEach((file) => {
+      if (shouldExcludeCommitFile(file.filename)) {
+        return;
+      }
+
+      const normalizedFilename = String(file.filename || "").toLowerCase();
+      const patch = String(file.patch || "").toLowerCase();
+      const changes = Math.max(Number(file.changes || file.additions || 0) + Number(file.deletions || 0), 1);
+
+      FRAMEWORK_DETECTORS.forEach((detector) => {
+        const matchedByPath = detector.patterns.some((pattern) => pattern.test(normalizedFilename));
+        const matchedByPatch = detector.tokens.some((token) => patch.includes(token));
+
+        if (!matchedByPath && !matchedByPatch) {
+          return;
+        }
+
+        addFrameworkMatch(
+          frameworkWeights,
+          frameworkEvidence,
+          detector,
+          changes * detector.weight,
+          getFrameworkEvidenceText(detector, file.filename, matchedByPatch),
+        );
+      });
+    });
+  });
+
+  return {
+    frameworkWeights,
+    frameworkEvidence,
+  };
+}
+
+async function fetchGithubContentText(repository, path, accessToken) {
+  try {
+    const content = await fetchGithubRest(
+      `/repos/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.name)}/contents/${encodeURIComponent(path)}`,
+      accessToken,
+    );
+
+    if (!content?.content || content.encoding !== "base64") {
+      return "";
+    }
+
+    return atob(content.content.replace(/\s/g, ""));
+  } catch {
+    return "";
+  }
+}
+
+async function fetchRepositoryManifestFrameworks(repositories, accessToken) {
+  const frameworkWeights = {};
+  const frameworkEvidence = {};
+  const targetRepositories = repositories.slice(0, GITHUB_MANIFEST_FETCH_REPOSITORY_LIMIT);
+
+  await mapWithConcurrency(targetRepositories, 2, async (repository) => {
+    const manifests = await mapWithConcurrency(
+      GITHUB_MANIFEST_PATHS,
+      2,
+      async (path) => ({
+        path,
+        content: await fetchGithubContentText(repository, path, accessToken),
+      }),
+    );
+
+    manifests
+      .filter((manifest) => manifest.content)
+      .forEach((manifest) => {
+        const normalizedPath = manifest.path.toLowerCase();
+        const normalizedContent = manifest.content.toLowerCase();
+
+        FRAMEWORK_DETECTORS.forEach((detector) => {
+          const matchedByPath = detector.patterns.some((pattern) => pattern.test(normalizedPath));
+          const matchedByContent = detector.tokens.some((token) => normalizedContent.includes(token));
+
+          if (!matchedByPath && !matchedByContent) {
+            return;
+          }
+
+          addFrameworkMatch(
+            frameworkWeights,
+            frameworkEvidence,
+            detector,
+            detector.weight * Math.max(repository.changes || repository.commitCount || 1, 1),
+            `${repository.nameWithOwner} ${manifest.path}`,
+          );
+        });
+      });
+  });
+
+  return {
+    frameworkWeights,
+    frameworkEvidence,
+  };
+}
+
+function mergeFrameworkAnalysis(firstAnalysis, secondAnalysis) {
+  const frameworkWeights = { ...firstAnalysis.frameworkWeights };
+  const frameworkEvidence = Object.fromEntries(
+    Object.entries(firstAnalysis.frameworkEvidence).map(([framework, evidence]) => [
+      framework,
+      [...evidence],
+    ]),
+  );
+
+  Object.entries(secondAnalysis.frameworkWeights).forEach(([framework, weight]) => {
+    frameworkWeights[framework] = (frameworkWeights[framework] || 0) + weight;
+  });
+
+  Object.entries(secondAnalysis.frameworkEvidence).forEach(([framework, evidence]) => {
+    frameworkEvidence[framework] = frameworkEvidence[framework] || [];
+    evidence.forEach((item) => {
+      if (!frameworkEvidence[framework].includes(item)) {
+        frameworkEvidence[framework].push(item);
+      }
+    });
+  });
+
+  return {
+    frameworkSummary: normalizeRatioSummary(frameworkWeights),
+    frameworkEvidence: Object.fromEntries(
+      Object.entries(frameworkEvidence).map(([framework, evidence]) => [
+        framework,
+        evidence.slice(0, 3),
+      ]),
+    ),
   };
 }
 
@@ -606,17 +884,28 @@ async function fetchCommitFilePortfolio(accessToken) {
   const commitDetailsBySha = new Map(
     commitDetails.map((commitDetail) => [commitDetail.sha, commitDetail]),
   );
-  const { languageSummary, stats } = aggregateCommitFileLanguages(commitDetails);
   const contributedRepositories = mergeRepositoryCommitStats(
     contributionData.repositories,
     commitsByRepository,
     commitDetailsBySha,
+  );
+  const { languageSummary, stats } = aggregateCommitFileLanguages(commitDetails);
+  const commitFrameworkAnalysis = analyzeCommitFileFrameworks(commitDetails);
+  const manifestFrameworkAnalysis = await fetchRepositoryManifestFrameworks(
+    contributedRepositories,
+    accessToken,
+  );
+  const { frameworkSummary, frameworkEvidence } = mergeFrameworkAnalysis(
+    commitFrameworkAnalysis,
+    manifestFrameworkAnalysis,
   );
 
   return {
     viewer: contributionData.viewer,
     contributions: contributionData.contributions,
     languageSummary,
+    frameworkSummary,
+    frameworkEvidence,
     commitFileStats: {
       ...stats,
       syncFrom: syncRange.from,
@@ -712,6 +1001,9 @@ export async function syncGithubPortfolio(uid) {
     ),
     github_language_json: portfolio.languageSummary,
     github_language_source: "COMMIT_FILES",
+    github_framework_json: portfolio.frameworkSummary,
+    github_framework_evidence: portfolio.frameworkEvidence,
+    github_framework_source: "COMMIT_FILES_AND_DEPENDENCIES",
     github_commit_file_stats: portfolio.commitFileStats,
     github_contributed_repositories: portfolio.contributedRepositories,
     github_synced_at: serverTimestamp(),
