@@ -14,6 +14,11 @@ const PROFILE_LINKS = [
     description: '내가 만든 구인과 승인되어 참여 중인 구인을 확인합니다.',
   },
   {
+    to: '/profile/references/my-scrap',
+    title: '찜한 참고 주제',
+    description: '찜해 둔 프로젝트 참고 주제를 모아봅니다.',
+  },
+  {
     to: '/profile/portfolio',
     title: 'GitHub 포트폴리오',
     description: 'GitHub 활동 요약과 기술 언어 비율을 확인합니다.',

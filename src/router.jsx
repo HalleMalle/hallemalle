@@ -14,6 +14,7 @@ import ProjectDetail from "@/pages/ProjectDetail";
 import ProjectCreate from "@/pages/ProjectCreate";
 import ProjectEdit from "@/pages/ProjectEdit";
 import ReferenceList from "@/pages/ReferenceList";
+import MyScrappedReferences from "@/pages/MyScrappedReferences";
 import Notifications from "@/pages/Notifications";
 import RequestList from "@/pages/RequestList";
 import ResponseList from "@/pages/ResponseList";
@@ -106,6 +107,14 @@ export default function AppRouter() {
                 element={
                   <ProtectedRoute>
                     <MyProjects />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/references/my-scrap"
+                element={
+                  <ProtectedRoute>
+                    <MyScrappedReferences />
                   </ProtectedRoute>
                 }
               />

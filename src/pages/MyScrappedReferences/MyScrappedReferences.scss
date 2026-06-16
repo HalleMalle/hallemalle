@@ -1,0 +1,206 @@
+@use "@/styles/main" as *;
+
+.my-scrap-page {
+  padding: $spacing-2xl 0 $spacing-3xl;
+}
+
+.my-scrap-header {
+  margin-bottom: $spacing-xl;
+}
+
+.my-scrap-back {
+  display: inline-block;
+  margin-bottom: $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.my-scrap-eyebrow {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.my-scrap-title {
+  margin-top: $spacing-xs;
+  font-size: $font-size-2xl;
+  line-height: $line-height-tight;
+}
+
+.my-scrap-subtitle {
+  margin-top: $spacing-sm;
+  max-width: 42rem;
+  color: $text-secondary;
+  line-height: $line-height-normal;
+}
+
+.my-scrap-alert {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background: $danger-light;
+  color: $danger;
+  font-size: $font-size-sm;
+}
+
+.my-scrap-status {
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  color: $text-secondary;
+  text-align: center;
+}
+
+.my-scrap-status-error {
+  border-color: $danger-light;
+  background: $danger-light;
+  color: $danger;
+}
+
+.my-scrap-empty {
+  @include flex-col-center;
+
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px dashed $gray-300;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  text-align: center;
+}
+
+.my-scrap-empty-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.my-scrap-empty-description {
+  margin-top: $spacing-xs;
+  color: $text-secondary;
+}
+
+.my-scrap-empty-link {
+  margin-top: $spacing-lg;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.my-scrap-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-lg;
+
+  @include tablet-up {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include desktop {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.my-scrap-card {
+  @include card-hover;
+  @include flex-column;
+
+  height: 100%;
+  padding: $spacing-lg;
+  gap: $spacing-sm;
+}
+
+.my-scrap-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.my-scrap-card-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  word-break: break-word;
+}
+
+.my-scrap-card-unscrap {
+  @include button-base;
+
+  flex-shrink: 0;
+  padding: $spacing-xs $spacing-sm;
+  border: 1px solid $danger;
+  border-radius: $radius-full;
+  background: $bg-primary;
+  color: $danger;
+  font-size: $font-size-xs;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.my-scrap-card-unscrap-icon {
+  font-size: $font-size-sm;
+  line-height: 1;
+}
+
+.my-scrap-card-description {
+  @include text-clamp(3);
+
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+}
+
+.my-scrap-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.my-scrap-card-tag {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+  background: $gray-100;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+}
+
+.my-scrap-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  margin-top: auto;
+  padding-top: $spacing-sm;
+  border-top: 1px solid $gray-200;
+}
+
+.my-scrap-card-likes {
+  color: $text-secondary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.my-scrap-card-meta {
+  color: $text-muted;
+  font-size: $font-size-xs;
+}
