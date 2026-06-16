@@ -27,6 +27,35 @@
   line-height: $line-height-normal;
 }
 
+.reference-list-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-lg;
+}
+
+.reference-list-tab {
+  @include button-base;
+
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $gray-300;
+  border-radius: $radius-full;
+  background: $bg-primary;
+  color: $text-secondary;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-list-tab-active {
+  background: $primary;
+  border-color: $primary;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+}
+
 .reference-list-alert {
   margin-bottom: $spacing-lg;
   padding: $spacing-sm $spacing-md;
@@ -75,15 +104,23 @@
 .reference-list-empty-link {
   margin-top: $spacing-lg;
   padding: $spacing-sm $spacing-lg;
+  border: none;
   border-radius: $radius-full;
   background: $primary;
   color: $text-inverse;
+  font-family: inherit;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
+  cursor: pointer;
   transition: opacity $transition-fast;
 
   &:hover {
     opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
   }
 }
 
@@ -173,10 +210,48 @@
   font-size: $font-size-xs;
 }
 
-.reference-card-meta {
+.reference-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
   margin-top: auto;
   padding-top: $spacing-sm;
   border-top: 1px solid $gray-200;
+}
+
+.reference-card-like {
+  @include button-base;
+
+  padding: $spacing-xs $spacing-sm;
+  border: 1px solid $gray-300;
+  border-radius: $radius-full;
+  background: $bg-primary;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+
+  &[aria-pressed='true'] {
+    border-color: $success;
+    background: $success-light;
+    color: $success;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-card-like-icon {
+  font-size: $font-size-xs;
+  line-height: 1;
+}
+
+.reference-card-like-count {
+  font-weight: $font-weight-semibold;
+}
+
+.reference-card-meta {
   color: $text-muted;
   font-size: $font-size-xs;
 }
