@@ -2,7 +2,7 @@
 
 .project-create-page {
   min-height: 100vh;
-  background-color: #fafafa;
+  background-color: $white-soft;
   padding: 40px 24px 80px;
 }
 
@@ -40,7 +40,7 @@
 
   &__draft {
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid $gray-200;
     border-radius: 10px;
     padding: 14px 16px;
   }
@@ -65,7 +65,7 @@
   flex: 1;
   min-width: 0;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid $gray-200;
   border-radius: 14px;
   padding: 32px 36px;
 }

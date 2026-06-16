@@ -352,7 +352,7 @@
 .thumbnail {
   border: 1.5px dashed $gray-300;
   border-radius: $radius-lg;
-  background: #fafafa;
+  background: $white-soft;
   min-height: 140px;
   display: flex;
   align-items: center;
@@ -417,7 +417,7 @@
   padding: 10px 14px;
   border: 1px solid $gray-300;
   border-radius: $radius-md;
-  background: #fafafa;
+  background: $white-soft;
   margin-bottom: 8px;
 }
 
