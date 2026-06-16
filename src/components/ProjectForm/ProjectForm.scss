@@ -175,7 +175,7 @@
   }
 }
 
-// 날짜 범위─
+// 날짜 범위
 .date-range {
   display: flex;
   align-items: center;
@@ -209,7 +209,7 @@
   font-size: 13px;
 }
 
-// 희망 인원─
+// 희망 인원
 .headcount {
   display: flex;
   align-items: center;
@@ -245,7 +245,7 @@
   }
 }
 
-// 참여 단계 버튼 ─
+// 참여 단계 버튼
 .stage-group {
   display: flex;
   gap: 8px;
@@ -285,14 +285,16 @@
   }
 }
 
-// 롤 태그
-.role-tags {
+// 태그
+.role-tags,
+.stack-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.role-tag {
+.role-tag,
+.stack-tag {
   height: 34px;
   padding: 0 16px;
   border-radius: 20px;
@@ -319,7 +321,7 @@
   }
 }
 
-// 롤별 인원─
+// 롤별 인원
 .role-counts {
   display: flex;
   flex-direction: column;
@@ -409,7 +411,7 @@
   }
 }
 
-// 기획 문서─
+// 기획 문서
 .doc-row {
   display: flex;
   align-items: center;
@@ -448,11 +450,12 @@
   color: $gray-800;
 }
 
-.doc-remove {
+.remove-btn {
   background: none;
   border: none;
   cursor: pointer;
   font-size: 16px;
+  color: $danger;
   padding: 4px;
   border-radius: 4px;
   transition: opacity 0.15s;
@@ -476,7 +479,7 @@
   }
 }
 
-// 연락 수단─
+// 연락 수단
 .contact {
   display: flex;
   gap: 10px;
@@ -487,7 +490,7 @@
   }
 }
 
-// 숨김 인풋─
+// 숨김 인풋
 .hidden-input {
   display: none;
 }

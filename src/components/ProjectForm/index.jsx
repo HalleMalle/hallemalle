@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 
 import CalendarIcon from "@/assets/icons/calendar.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
@@ -6,16 +6,52 @@ import PeopleIcon from "@/assets/icons/people.svg";
 
 import "./ProjectForm.scss";
 
-// constants
 const ROLE_OPTIONS = [
+  { value: "Frontend", label: "Frontend" },
+  { value: "Backend", label: "Backend" },
   { value: "Android", label: "Android" },
   { value: "iOS", label: "iOS" },
-  { value: "BE", label: "Backend" },
-  { value: "FE", label: "Frontend" },
   { value: "Design", label: "Design" },
-  { value: "PM", label: "PM/PO" },
-  { value: "QA", label: "QA" },
-  { value: "AI", label: "AI/ML" },
+  { value: "PM/PO", label: "PM/PO" },
+];
+
+const STACK_OPTIONS = [
+  // --- Frontend ---
+  { value: "JavaScript", label: "JavaScript" },
+  { value: "TypeScript", label: "TypeScript" },
+  { value: "React.js", label: "React.js" },
+  { value: "Next.js", label: "Next.js" },
+  { value: "Vue.js", label: "Vue.js" },
+  { value: "Nuxt.js", label: "Nuxt.js" },
+
+  // --- Backend ---
+  { value: "Node.js", label: "Node.js" },
+  { value: "Express", label: "Express" },
+  { value: "NestJS", label: "NestJS" },
+  { value: "Java", label: "Java" },
+  { value: "SpringBoot", label: "SpringBoot" },
+  { value: "Python", label: "Python" },
+  { value: "Django", label: "Django" },
+  { value: "FastAPI", label: "FastAPI" },
+  { value: "Go", label: "Go" },
+
+  // --- Mobile ---
+  { value: "Swift", label: "Swift" },
+  { value: "Kotlin", label: "Kotlin" },
+  { value: "Flutter", label: "Flutter" },
+  { value: "React Native", label: "React Native" },
+
+  // --- Database & DevOps ---
+  { value: "MySQL", label: "MySQL" },
+  { value: "PostgreSQL", label: "PostgreSQL" },
+  { value: "MongoDB", label: "MongoDB" },
+  { value: "Redis", label: "Redis" },
+  { value: "AWS", label: "AWS" },
+  { value: "Docker", label: "Docker" },
+  { value: "Firebase", label: "Firebase" },
+
+  // --- Design & PM ---
+  { value: "Figma", label: "Figma" },
 ];
 
 const STAGE_OPTIONS = [
@@ -30,15 +66,14 @@ const STATUS_OPTIONS = [
   { value: "closed", label: "모집 완료" },
 ];
 
+// 규칙 isValidContactType: 'email' | 'kakao' | 'link' | 'other' 만 허용
 const CONTACT_TYPES = [
   { value: "email", label: "Email" },
   { value: "kakao", label: "KakaoTalk" },
-  { value: "discord", label: "Discord" },
-  { value: "slack", label: "Slack" },
+  { value: "link", label: "Link (오픈채팅·Discord 등)" },
   { value: "other", label: "Other" },
 ];
 
-// helper
 function buildInitialRoleCounts(initialPositions) {
   const map = {};
   (initialPositions || []).forEach((p) => {
@@ -47,7 +82,6 @@ function buildInitialRoleCounts(initialPositions) {
   return map;
 }
 
-// 컴포넌트
 export default function ProjectForm({
   initialData,
   onSubmit,
@@ -62,7 +96,6 @@ export default function ProjectForm({
     initialData?.startDate || new Date().toISOString().slice(0, 10)
   );
   const [endDate, setEndDate] = useState(initialData?.endDate || "");
-  const [headcount, setHeadcount] = useState(initialData?.headcount || 1);
   const [status, setStatus] = useState(initialData?.status || "recruiting");
   const [stage, setStage] = useState(
     initialData?.participationStage || "planning"
@@ -73,10 +106,22 @@ export default function ProjectForm({
   const [roleCounts, setRoleCounts] = useState(() =>
     buildInitialRoleCounts(initialData?.positions)
   );
+  const [selectedStack, setSelectedStack] = useState(
+    () => new Set(initialData?.techStack || [])
+  );
   const [thumbnail, setThumbnail] = useState(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState(null);
-  const [planningDocs, setPlanningDocs] = useState([]);
-  const [docVisibility, setDocVisibility] = useState({});
+  const [thumbnailPreview, setThumbnailPreview] = useState(
+    initialData?.thumbnailUrl || null
+  );
+  const [planningDocs, setPlanningDocs] = useState(
+    // 수정 모드 초기값: { name, url, visibility } 형태로 받음
+    initialData?.documents?.map((d) => ({
+      name: d.file_name,
+      url: d.file_url,
+      visibility: d.visibility, // "public" | "approved_only"
+      file: null, // 기존 파일은 File 없음
+    })) || []
+  );
   const [contactType, setContactType] = useState(
     initialData?.contactType || "email"
   );
@@ -91,13 +136,20 @@ export default function ProjectForm({
   const docInputRef = useRef(null);
 
   const hasAttachmentStage = stage === "development" || stage === "maintenance";
-  const totalSlots = [...selectedRoles].reduce(
-    (sum, role) => sum + (roleCounts[role] || 0),
-    0
+
+  // total > 0인 역할만 카운트 (API로 넘길 positions와 동일 기준)
+  const totalSlots = useMemo(
+    () =>
+      [...selectedRoles].reduce(
+        (sum, role) => sum + (roleCounts[role] || 0),
+        0
+      ),
+    [selectedRoles, roleCounts]
   );
+
   const isValid =
-    title.trim() &&
-    description.trim() &&
+    title.trim() !== "" &&
+    description.trim() !== "" &&
     selectedRoles.size > 0 &&
     totalSlots >= 2;
 
@@ -109,6 +161,7 @@ export default function ProjectForm({
     setSelectedRoles((prev) => {
       const next = new Set(prev);
       if (next.has(role)) {
+        setRoleCounts((rc) => ({ ...rc, [role]: 0 }));
         next.delete(role);
       } else {
         next.add(role);
@@ -120,6 +173,18 @@ export default function ProjectForm({
   const handleRoleCountChange = (role, value) => {
     const num = Math.max(0, parseInt(value, 10) || 0);
     setRoleCounts((prev) => ({ ...prev, [role]: num }));
+  };
+
+  const handleStackToggle = (stack) => {
+    setSelectedStack((prev) => {
+      const next = new Set(prev);
+      if (next.has(stack)) {
+        next.delete(stack);
+      } else {
+        next.add(stack);
+      }
+      return next;
+    });
   };
 
   const handleThumbnailChange = (e) => {
@@ -138,35 +203,34 @@ export default function ProjectForm({
   };
 
   const handleThumbnailRemove = (e) => {
-    e.preventDefault();
+    e.stopPropagation();
     setThumbnail(null);
     setThumbnailPreview(null);
   };
 
   const handleAddDocs = (e) => {
     const files = Array.from(e.target.files || []);
-    setPlanningDocs((prev) => [...prev, ...files]);
-    setDocVisibility((prev) => {
-      const next = { ...prev };
-      files.forEach((f) => {
-        next[f.name] = "public";
-      });
-      return next;
-    });
+    const newDocs = files.map((f) => ({
+      name: f.name,
+      file: f, // File 인스턴스 보존
+      url: null,
+      visibility: "public",
+    }));
+    setPlanningDocs((prev) => [...prev, ...newDocs]);
     e.target.value = "";
   };
 
+  // File 객체를 직접 .name으로 접근 (구조분해 제거)
   const handleRemoveDoc = (fileName) => {
-    setPlanningDocs((prev) => prev.filter(({ name }) => name !== fileName));
-    setDocVisibility((prev) => {
-      const next = { ...prev };
-      delete next[fileName];
-      return next;
-    });
+    setPlanningDocs((prev) => prev.filter((doc) => doc.name !== fileName));
   };
 
   const handleDocVisibility = (fileName, value) => {
-    setDocVisibility((prev) => ({ ...prev, [fileName]: value }));
+    setPlanningDocs((prev) =>
+      prev.map((doc) =>
+        doc.name === fileName ? { ...doc, visibility: value } : doc
+      )
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -174,34 +238,42 @@ export default function ProjectForm({
     if (!isValid) return;
 
     setSubmitting(true);
-
     try {
-      const positions = [...selectedRoles].map((role) => ({
-        role,
-        label: ROLE_OPTIONS.find((r) => r.value === role)?.label || role,
-        total: roleCounts[role] || 0,
-        current: 0,
-      }));
+      // total > 0인 역할만 포함 (0명 역할 제외)
+      const positions = [...selectedRoles]
+        .filter((role) => (roleCounts[role] || 0) > 0)
+        .map((role) => ({
+          role,
+          label: ROLE_OPTIONS.find((r) => r.value === role)?.label || role,
+          total: roleCounts[role],
+          current: 0,
+        }));
 
+      // headcount를 positions 합계(totalSlots)로 자동 계산해서 전달
+      // API의 total_headcount 필드에 매핑됨
       const data = {
         title: title.trim(),
         description: description.trim(),
         startDate: startDate || null,
         endDate: endDate || null,
-        headcount,
+        headcount: totalSlots,
         status,
         participationStage: stage,
         positions,
         contactType,
         contactValue: contactValue.trim(),
         thumbnail: thumbnail || null,
+        // visibility를 그대로 전달 ("public" | "approved_only")
+        // API 내부에서 "approved" 비교 → "approved_only" 이중 변환 제거
         attachments: hasAttachmentStage
-          ? planningDocs.map((f) => ({
-              name: f.name,
-              file: f,
-              visibility: docVisibility[f.name] || "public",
+          ? planningDocs.map(({ name, file, url, visibility }) => ({
+              name,
+              file: file || null,
+              url: url || null,
+              visibility, // "public" | "approved_only"
             }))
           : [],
+        techStack: Array.from(selectedStack),
       };
 
       await onSubmit(data);
@@ -233,7 +305,10 @@ export default function ProjectForm({
         <div className="field">
           <label className="label">모집 기간</label>
           <div className="date-range">
-            <span className="date-icon">
+            <span
+              className="date-icon"
+              onClick={() => handleDatePickerOpen(startDateRef)}
+            >
               <img src={CalendarIcon} alt="calendar" width={16} height={16} />
             </span>
             <input
@@ -256,25 +331,19 @@ export default function ProjectForm({
           </div>
         </div>
 
+        {/* 희망 인원 input 제거 — totalSlots로 자동 계산되어 API에 전달됨 */}
         <div className="field">
-          <label className="label">희망 인원</label>
+          <label className="label">희망 인원 (자동 합산)</label>
           <div className="headcount">
             <span className="headcount-icon">
               <img src={PeopleIcon} alt="people" width={16} height={16} />
             </span>
-            <input
-              className="input input--num"
-              type="number"
-              min={1}
-              max={100}
-              value={headcount}
-              onChange={(e) => setHeadcount(Number(e.target.value))}
-            />
-            <span className="headcount-suffix">명</span>
+            <span className="headcount-value">{totalSlots} 명</span>
           </div>
         </div>
       </div>
 
+      {/* 모집 상태 */}
       <div className="field">
         <label className="label">모집 상태</label>
         <div className="select-wrap">
@@ -292,6 +361,7 @@ export default function ProjectForm({
         </div>
       </div>
 
+      {/* 참여 단계 */}
       <div className="field">
         <label className="label">참여 단계</label>
         <div className="stage-group">
@@ -308,8 +378,11 @@ export default function ProjectForm({
         </div>
       </div>
 
+      {/* 모집 희망 파트 및 역할 */}
       <div className="field">
-        <label className="label">모집 희망 파트 및 역할</label>
+        <label className="label">
+          모집 희망 파트 및 역할 <span className="required-text">*</span>
+        </label>
         <div className="role-tags">
           {ROLE_OPTIONS.map((r) => (
             <button
@@ -334,7 +407,7 @@ export default function ProjectForm({
                   <div className="select-wrap select-wrap--sm">
                     <select
                       className="select"
-                      value={roleCounts[role] || 1}
+                      value={roleCounts[role] || 0}
                       onChange={(e) =>
                         handleRoleCountChange(role, e.target.value)
                       }
@@ -351,6 +424,27 @@ export default function ProjectForm({
             })}
           </div>
         )}
+        {totalSlots < 2 && selectedRoles.size > 0 && (
+          <span className="label-hint required-text">
+            총 희망 인원은 최소 2명 이상이어야 합니다. (현재 {totalSlots}명)
+          </span>
+        )}
+      </div>
+
+      <div className="field">
+        <label className="label">희망 기술 선택</label>
+        <div className="stack-tags">
+          {STACK_OPTIONS.map((r) => (
+            <button
+              key={r.value}
+              type="button"
+              className={`stack-tag${selectedStack.has(r.value) ? " stack-tag--active" : ""}`}
+              onClick={() => handleStackToggle(r.value)}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="field">
@@ -370,7 +464,9 @@ export default function ProjectForm({
         <label className="label">프로젝트 썸네일 이미지</label>
         <div
           className={`thumbnail${thumbnailPreview ? " thumbnail--filled" : ""}`}
-          onClick={() => thumbnailInputRef.current?.click()}
+          onClick={() =>
+            !thumbnailPreview && thumbnailInputRef.current?.click()
+          }
           onDrop={handleThumbnailDrop}
           onDragOver={(e) => e.preventDefault()}
         >
@@ -383,10 +479,10 @@ export default function ProjectForm({
               />
               <button
                 type="button"
-                className="thumbnail__remove-btn"
+                className="remove-btn"
                 onClick={handleThumbnailRemove}
               >
-                ✕
+                🅇
               </button>
             </>
           ) : (
@@ -411,35 +507,33 @@ export default function ProjectForm({
 
       <div className="field">
         <label className="label">기획 문서</label>
-        {hasAttachmentStage && (
-          <p className="label-hint required-text">
-            '개발부터' 또는 '유지보수' 단계에서 시작하는 경우 필수입니다.
-          </p>
-        )}
 
-        {planningDocs.map((file) => (
-          <div key={file.name} className="doc-row">
+        {planningDocs.map((doc) => (
+          <div key={doc.name} className="doc-row">
             <span className="doc-icon">📄</span>
             <div className="doc-info">
-              <span className="doc-name">{file.name}</span>
-              <span className="doc-size">
-                {(file.size / 1024 / 1024).toFixed(1)} MB
-              </span>
+              <span className="doc-name">{doc.name}</span>
+              {doc.file && (
+                <span className="doc-size">
+                  {(doc.file.size / 1024 / 1024).toFixed(1)} MB
+                </span>
+              )}
             </div>
             <div className="select-wrap">
               <select
                 className="select"
-                value={docVisibility[file.name] || "public"}
-                onChange={(e) => handleDocVisibility(file.name, e.target.value)}
+                value={doc.visibility}
+                onChange={(e) => handleDocVisibility(doc.name, e.target.value)}
               >
+                {/* value를 API 스키마 값과 일치시킴 */}
                 <option value="public">🔓 전체 공개</option>
-                <option value="approved">🔒 승인한 사용자만 공개</option>
+                <option value="approved_only">🔒 승인한 사용자만 공개</option>
               </select>
             </div>
             <button
               type="button"
-              className="doc-remove"
-              onClick={() => handleRemoveDoc(file.name)}
+              className="remove-btn"
+              onClick={() => handleRemoveDoc(doc.name)}
             >
               <img src={TrashIcon} alt="trash" width={16} height={16} />
             </button>
@@ -461,6 +555,11 @@ export default function ProjectForm({
           className="hidden-input"
           onChange={handleAddDocs}
         />
+        {hasAttachmentStage && (
+          <p className="label-hint required-text">
+            '개발부터' 또는 '유지보수' 단계에서 시작하는 경우 필수입니다.
+          </p>
+        )}
       </div>
 
       <div className="field">

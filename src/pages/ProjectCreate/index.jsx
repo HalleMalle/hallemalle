@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "@/contexts/AuthContext";
 import { createProject } from "@/api/project";
+import { useAuth } from "@/contexts/AuthContext";
 
 import ProjectForm from "@/components/ProjectForm";
 
@@ -26,9 +26,7 @@ export default function ProjectCreate() {
 
       const result = await createProject(projectData);
 
-      if (result?.id) {
-        navigate(`/togethers/${result.id}`);
-      }
+      if (result?.id) navigate(`/togethers/${result.id}`);
     } catch (err) {
       console.error("ProjectCreate submit error:", err);
       setError("프로젝트 등록 중 오류가 발생했습니다. 다시 시도해주세요.");

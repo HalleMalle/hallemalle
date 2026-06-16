@@ -32,12 +32,26 @@ export default function AppRouter() {
               {/* 인증 불필요 */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/togethers" element={<ProjectList />} />
-              <Route path="/togethers/:id" element={<ProjectDetail />} />
               <Route path="/references" element={<ReferenceList />} />
               <Route path="/memoirs" element={<RetrospectiveList />} />
 
               {/* 인증 필요 */}
+              <Route
+                path="/togethers"
+                element={
+                  <ProtectedRoute>
+                    <ProjectList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/togethers/:id"
+                element={
+                  <ProtectedRoute>
+                    <ProjectDetail />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/togethers/write"
                 element={

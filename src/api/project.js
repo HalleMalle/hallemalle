@@ -1,8 +1,9 @@
-// togethers, together_roles, together_tech_stack, planning_documents 컬렉션을 다룸
+// togethers, together_roles, together_tech_stack, planning_documents 컬렉션을 다룹니다.
 
 import {
   collection,
   doc,
+  setDoc,
   addDoc,
   getDoc,
   getDocs,
@@ -33,76 +34,35 @@ const DOCUMENTS_COL = "planning_documents";
 const PAGE_SIZE = 12;
 
 // 내부 유틸
-
-/**
- * ProjectForm의 participationStage 값을 DB 스키마의 participation_stage 값으로 변환
- * planning → plan | development → dev | maintenance → maintain
- */
 function toDbStage(formStage) {
   const map = { planning: "plan", development: "dev", maintenance: "maintain" };
   return map[formStage] ?? formStage;
 }
 
-/**
- * DB의 participation_stage 값을 ProjectForm의 participationStage 값으로 변환
- */
 function toFormStage(dbStage) {
   const map = { plan: "planning", dev: "development", maintain: "maintenance" };
   return map[dbStage] ?? dbStage;
 }
 
-/**
- * ProjectForm의 status 값을 DB 스키마의 recruitment_status 값으로 변환
- * recruiting → recruiting | paused → recruiting(그대로) | closed → closed
- * (스키마상 paused 없음 → recruiting 유지)
- */
 function toDbStatus(formStatus) {
-  if (formStatus === "closed") return "closed";
-  return "recruiting";
+  const map = { recruiting: "recruiting", paused: "closed", closed: "closed" };
+  return map[formStatus] ?? "recruiting";
 }
 
-/**
- * Storage에 썸네일 이미지를 업로드하고 다운로드 URL을 반환합니다.
- * @param {File} file
- * @param {string} postId
- * @returns {Promise<string>} downloadURL
- */
 async function uploadThumbnail(file, postId) {
-  const ext = file.name.split(".").pop();
-  const storageRef = ref(storage, `togethers/${postId}/thumbnail.${ext}`);
+  const storageRef = ref(storage, `togethers/${postId}/thumbnail_${file.name}`);
   await uploadBytes(storageRef, file);
   return getDownloadURL(storageRef);
 }
 
-/**
- * Storage에 기획 문서를 업로드하고 다운로드 URL을 반환합니다.
- * @param {File} file
- * @param {string} postId
- * @returns {Promise<string>} downloadURL
- */
 async function uploadDocument(file, postId) {
   const storageRef = ref(storage, `togethers/${postId}/documents/${file.name}`);
   await uploadBytes(storageRef, file);
   return getDownloadURL(storageRef);
 }
 
-// 프로젝트 생성
-
 /**
- * 새 프로젝트를 생성합니다.
- *
- * ProjectForm이 넘기는 data 구조:
- *   title, description, startDate, endDate, headcount,
- *   status, participationStage, positions (role/label/total/current),
- *   contactType, contactValue,
- *   thumbnail (File | null),
- *   attachments ([{ name, file, visibility }])
- *
- * 추가로 ProjectCreate가 붙이는 필드:
- *   creatorId (uid)
- *
- * @param {{ creatorId: string } & object} formData
- * @returns {Promise<{ id: string }>}
+ * 프로젝트 신규 생성 (with Roles, Documents, Tech Stack)
  */
 export async function createProject(formData) {
   const {
@@ -119,14 +79,19 @@ export async function createProject(formData) {
     contactValue,
     thumbnail,
     attachments = [],
+    techStack = [],
   } = formData;
 
-  // 1) togethers 문서 생성 (post_id는 Firestore auto-id)
-  const togetherRef = await addDoc(collection(db, TOGETHERS_COL), {
+  const togetherRef = doc(collection(db, TOGETHERS_COL));
+  const postId = togetherRef.id;
+
+  // 1) togethers 기본 문서 세팅
+  await setDoc(togetherRef, {
+    post_id: postId,
     created_by: creatorId,
     title: title.trim(),
     description: description.trim(),
-    thumbnail_url: null, // 업로드 후 갱신
+    thumbnail_url: null,
     recruitment_status: toDbStatus(status),
     participation_stage: toDbStage(participationStage),
     recruitment_start: startDate || null,
@@ -141,15 +106,13 @@ export async function createProject(formData) {
     updated_at: serverTimestamp(),
   });
 
-  const postId = togetherRef.id;
-
-  // 2) 썸네일 업로드
+  // 썸네일 업로드 처리
   if (thumbnail instanceof File) {
     const thumbnailUrl = await uploadThumbnail(thumbnail, postId);
     await updateDoc(togetherRef, { thumbnail_url: thumbnailUrl });
   }
 
-  // 3) together_roles 서브 문서 일괄 생성
+  // 2) 모집 포지션 배열 빌드
   const rolePromises = positions
     .filter((p) => p.total > 0)
     .map((p) =>
@@ -161,32 +124,40 @@ export async function createProject(formData) {
       })
     );
 
-  // 4) planning_documents 서브 문서 일괄 생성
+  // 3) 기획 문서 파일 업로드 및 레코드 배열 빌드
   const docPromises = attachments.map(async ({ file, name, visibility }) => {
-    if (!(file instanceof File)) return;
+    if (!(file instanceof File)) return null;
     const fileUrl = await uploadDocument(file, postId);
     return addDoc(collection(db, DOCUMENTS_COL), {
       post_id: postId,
       file_name: name,
       file_url: fileUrl,
-      visibility: visibility === "approved" ? "approved_only" : "public",
+      visibility: visibility === "approved_only" ? "approved_only" : "public",
     });
   });
 
-  await Promise.all([...rolePromises, ...docPromises]);
+  // 4) 💡 [버그 교정] undefined 유발 map 구문을 거르고 안전하게 프로미스 배열 확보
+  const validTechStack = techStack.filter(
+    (tag) => typeof tag === "string" && tag.trim() !== ""
+  );
+  const techPromises = validTechStack.map((tag) =>
+    addDoc(collection(db, TECH_STACK_COL), {
+      post_id: postId,
+      tag: tag.trim(),
+    })
+  );
+
+  // 5) 비동기 배열 일괄 해제 실행 전 null 이나 undefined 인 찌꺼기들 깔끔하게 쳐내기
+  const allPromises = [...rolePromises, ...docPromises, ...techPromises].filter(
+    Boolean
+  );
+  await Promise.all(allPromises);
 
   return { id: postId };
 }
 
-// 프로젝트 수정 (작성자만)
-
 /**
- * 기존 프로젝트를 수정합니다.
- * positions와 attachments는 기존 서브컬렉션을 삭제 후 재생성합니다.
- *
- * @param {string} postId
- * @param {string} currentUserId  - 로그인 유저 uid
- * @param {object} formData       - ProjectForm이 넘기는 data 구조와 동일
+ * 프로젝트 수정 (기존 연관 서브 데이터 일괄 삭제 후 재생성 패턴)
  */
 export async function updateProject(postId, currentUserId, formData) {
   const togetherRef = doc(db, TOGETHERS_COL, postId);
@@ -210,9 +181,9 @@ export async function updateProject(postId, currentUserId, formData) {
     contactValue,
     thumbnail,
     attachments = [],
+    techStack = [],
   } = formData;
 
-  // 1) togethers 문서 갱신
   const updatePayload = {
     title: title.trim(),
     description: description.trim(),
@@ -226,7 +197,6 @@ export async function updateProject(postId, currentUserId, formData) {
     updated_at: serverTimestamp(),
   };
 
-  // 2) 새 썸네일이 있으면 업로드
   if (thumbnail instanceof File) {
     const thumbnailUrl = await uploadThumbnail(thumbnail, postId);
     updatePayload.thumbnail_url = thumbnailUrl;
@@ -234,7 +204,7 @@ export async function updateProject(postId, currentUserId, formData) {
 
   await updateDoc(togetherRef, updatePayload);
 
-  // 3) together_roles 재구성 (기존 삭제 → 재생성)
+  // 1) 기존 포지션 제거 후 재생성
   const existingRolesSnap = await getDocs(
     query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
   );
@@ -247,149 +217,143 @@ export async function updateProject(postId, currentUserId, formData) {
         post_id: postId,
         role_type: p.role,
         headcount: p.total,
-        filled_count: p.current || 0,
+        filled_count: 0,
       })
     );
 
-  // 4) planning_documents 재구성 (기존 삭제 → 재생성)
-  //    File 인스턴스인 항목만 새로 업로드, 나머지(기존 URL)는 그대로 유지
+  // 2) 기존 기획문서 제거 후 재생성
   const existingDocsSnap = await getDocs(
     query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
   );
-  await Promise.all(existingDocsSnap.docs.map((d) => deleteDoc(d.ref)));
-
-  const docPromises = attachments.map(
-    async ({ file, name, visibility, url }) => {
-      let fileUrl = url || null;
-      if (file instanceof File) {
-        fileUrl = await uploadDocument(file, postId);
-      }
-      if (!fileUrl) return;
-      return addDoc(collection(db, DOCUMENTS_COL), {
-        post_id: postId,
-        file_name: name,
-        file_url: fileUrl,
-        visibility: visibility === "approved" ? "approved_only" : "public",
-      });
-    }
-  );
-
-  await Promise.all([...rolePromises, ...docPromises]);
-}
-
-// 프로젝트 삭제 (작성자만)
-
-/**
- * 프로젝트와 연관 서브컬렉션 문서를 모두 삭제합니다.
- *
- * @param {string} postId
- * @param {string} currentUserId
- */
-export async function deleteProject(postId, currentUserId) {
-  const togetherRef = doc(db, TOGETHERS_COL, postId);
-  const snap = await getDoc(togetherRef);
-
-  if (!snap.exists()) throw new Error("프로젝트를 찾을 수 없습니다.");
-  if (snap.data().created_by !== currentUserId) {
-    throw new Error("삭제 권한이 없습니다.");
-  }
-
-  const data = snap.data();
-
-  // 1) Storage 썸네일 삭제 (있을 때만)
-  if (data.thumbnail_url) {
-    try {
-      const thumbRef = ref(storage, data.thumbnail_url);
-      await deleteObject(thumbRef);
-    } catch {
-      // 파일이 없는 경우 무시
-    }
-  }
-
-  // 2) 서브컬렉션 삭제
-  const subCollections = [TOGETHER_ROLES_COL, TECH_STACK_COL, DOCUMENTS_COL];
   await Promise.all(
-    subCollections.map(async (col) => {
-      const subSnap = await getDocs(
-        query(collection(db, col), where("post_id", "==", postId))
-      );
-      return Promise.all(subSnap.docs.map((d) => deleteDoc(d.ref)));
+    existingDocsSnap.docs.map(async (d) => {
+      const data = d.data();
+      if (data.file_url) {
+        try {
+          const fileRef = ref(storage, data.file_url);
+          await deleteObject(fileRef);
+        } catch (e) {
+          console.warn("기존 파일 삭제 실패 (무시 가능):", e);
+        }
+      }
+      await deleteDoc(d.ref);
     })
   );
 
-  // 3) togethers 문서 삭제
-  await deleteDoc(togetherRef);
+  const docPromises = attachments.map(
+    async ({ file, name, visibility, url }) => {
+      if (!file && url) {
+        return addDoc(collection(db, DOCUMENTS_COL), {
+          post_id: postId,
+          file_name: name,
+          file_url: url,
+          visibility,
+        });
+      }
+      if (file instanceof File) {
+        const fileUrl = await uploadDocument(file, postId);
+        return addDoc(collection(db, DOCUMENTS_COL), {
+          post_id: postId,
+          file_name: name,
+          file_url: fileUrl,
+          visibility,
+        });
+      }
+      return null;
+    }
+  );
+
+  // 3) 기존 스택 제거 후 재생성
+  const existingTechSnap = await getDocs(
+    query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
+  );
+  await Promise.all(existingTechSnap.docs.map((d) => deleteDoc(d.ref)));
+
+  const validTechStack = techStack.filter(
+    (tag) => typeof tag === "string" && tag.trim() !== ""
+  );
+  const techPromises = validTechStack.map((tag) =>
+    addDoc(collection(db, TECH_STACK_COL), {
+      post_id: postId,
+      tag: tag.trim(),
+    })
+  );
+
+  const allPromises = [...rolePromises, ...docPromises, ...techPromises].filter(
+    Boolean
+  );
+  await Promise.all(allPromises);
 }
 
-// 프로젝트 단건 조회
-
 /**
- * postId로 프로젝트 단건을 조회하고 roles, techStack, documents를 함께 반환합니다.
- *
- * @param {string} postId
- * @returns {Promise<object>}
+ * 단건 프로젝트 및 매핑 데이터 병합 조회 (Detail용)
  */
 export async function getProject(postId) {
   const togetherRef = doc(db, TOGETHERS_COL, postId);
-  const snap = await getDoc(togetherRef);
-  if (!snap.exists()) throw new Error("프로젝트를 찾을 수 없습니다.");
+  const togetherSnap = await getDoc(togetherRef);
 
-  const data = { post_id: snap.id, ...snap.data() };
+  if (!togetherSnap.exists()) {
+    return null;
+  }
 
-  // 서브컬렉션 병렬 조회
-  const [rolesSnap, techSnap, docsSnap] = await Promise.all([
-    getDocs(
-      query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
-    ),
-    getDocs(
-      query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
-    ),
-    getDocs(
-      query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
-    ),
-  ]);
+  const togetherData = togetherSnap.data();
+
+  // 하위 연관 데이터 세트 가져오기
+  const rolesSnap = await getDocs(
+    query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
+  );
+  const techSnap = await getDocs(
+    query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
+  );
+  const docsSnap = await getDocs(
+    query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
+  );
+
+  const roles = rolesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const techStack = techSnap.docs.map((d) => d.data().tag);
+  const documents = docsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
   return {
-    ...data,
-    // ProjectForm 호환 필드로 변환
-    participationStage: toFormStage(data.participation_stage),
-    roles: rolesSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
-    techStack: techSnap.docs.map((d) => d.data().tag),
-    documents: docsSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
+    ...togetherData,
+    roles,
+    techStack,
+    documents,
   };
 }
 
-// 프로젝트 리스트 조회
-
 /**
- * 프로젝트 목록을 페이지네이션으로 조회합니다.
- *
- * @param {{
- *   roleFilter?: string,       // together_roles.role_type 필터 (선택)
- *   statusFilter?: string,     // 'recruiting' | 'closed' (선택)
- *   lastDoc?: object,          // 이전 페이지의 마지막 문서 스냅샷 (더보기용)
- * }} options
- * @returns {Promise<{ projects: object[], lastDoc: object | null, hasMore: boolean }>}
+ * 프로젝트 목록 전체 조회 (Firestore 쿼리 순서 제약 조건 완벽 수정 버전)
  */
 export async function getProjectList({
   roleFilter,
   statusFilter,
   lastDoc,
 } = {}) {
-  let constraints = [orderBy("created_at", "desc"), limit(PAGE_SIZE)];
+  // 1. 순서 정렬을 위해 기본 필터(where)와 정렬/제한(order/limit) 분리 빌드
+  let baseFilters = [where("is_private", "==", false)];
+  let pageConstraints = [orderBy("created_at", "desc"), limit(PAGE_SIZE)];
 
-  if (statusFilter) {
-    constraints = [
-      where("recruitment_status", "==", statusFilter),
-      ...constraints,
-    ];
+  // statusFilter가 안전한 문자열일 때만 필터(where) 목록 맨 앞에 추가
+  if (
+    statusFilter &&
+    typeof statusFilter === "string" &&
+    statusFilter.trim() !== ""
+  ) {
+    baseFilters.push(where("recruitment_status", "==", statusFilter.trim()));
   }
 
+  // 페이징 스냅샷이 있을 때만 추가
   if (lastDoc) {
-    constraints = [...constraints, startAfter(lastDoc)];
+    pageConstraints.push(startAfter(lastDoc));
   }
 
-  const projectQuery = query(collection(db, TOGETHERS_COL), ...constraints);
+  // 🔥 [핵심 교정] 모든 where 절이 orderBy, limit보다 무조건 앞으로 오도록 순서 보장 조합
+  const finalConstraints = [...baseFilters, ...pageConstraints];
+
+  const projectQuery = query(
+    collection(db, TOGETHERS_COL),
+    ...finalConstraints
+  );
   const snap = await getDocs(projectQuery);
 
   if (snap.empty) {
@@ -398,23 +362,59 @@ export async function getProjectList({
 
   // roleFilter가 있을 때 해당 role이 포함된 post_id 집합을 먼저 조회
   let allowedPostIds = null;
-  if (roleFilter) {
+  if (
+    roleFilter &&
+    typeof roleFilter === "string" &&
+    roleFilter.trim() !== ""
+  ) {
     const roleSnap = await getDocs(
       query(
         collection(db, TOGETHER_ROLES_COL),
-        where("role_type", "==", roleFilter)
+        where("role_type", "==", roleFilter.trim())
       )
     );
     allowedPostIds = new Set(roleSnap.docs.map((d) => d.data().post_id));
   }
 
-  const projects = snap.docs
-    .filter((d) => !allowedPostIds || allowedPostIds.has(d.id))
-    .map((d) => ({ post_id: d.id, ...d.data() }));
+  const projects = [];
+  for (const d of snap.docs) {
+    const pData = d.data();
+    const targetPostId = pData.post_id || d.id;
 
+    // 역할 필터가 켜져 있는데 일치하는 post_id 결과 목록에 없다면 스킵
+    if (allowedPostIds && !allowedPostIds.has(targetPostId)) {
+      continue;
+    }
+
+    if (!targetPostId) continue;
+
+    // 연관된 파트(역할) 데이터 병합 조인
+    const rolesSnap = await getDocs(
+      query(
+        collection(db, TOGETHER_ROLES_COL),
+        where("post_id", "==", targetPostId)
+      )
+    );
+    // 연관된 기술 스택 데이터 병합 조인
+    const techSnap = await getDocs(
+      query(
+        collection(db, TECH_STACK_COL),
+        where("post_id", "==", targetPostId)
+      )
+    );
+
+    projects.push({
+      ...pData,
+      post_id: targetPostId,
+      roles: rolesSnap.docs.map((r) => r.data()),
+      techStack: techSnap.docs.map((t) => t.data().tag),
+    });
+  }
+
+  const nextLastDoc = snap.docs[snap.docs.length - 1];
   return {
     projects,
-    lastDoc: snap.docs[snap.docs.length - 1],
+    lastDoc: nextLastDoc,
     hasMore: snap.docs.length === PAGE_SIZE,
   };
 }
