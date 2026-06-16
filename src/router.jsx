@@ -15,6 +15,8 @@ import ProjectCreate from "@/pages/ProjectCreate";
 import ProjectEdit from "@/pages/ProjectEdit";
 import ReferenceList from "@/pages/ReferenceList";
 import Notifications from "@/pages/Notifications";
+import RequestList from "@/pages/RequestList";
+import ResponseList from "@/pages/ResponseList";
 import MyProjects from "@/pages/MyProjects";
 import RetrospectiveList from "@/pages/RetrospectiveList";
 import ReviewWrite from "@/pages/ReviewWrite";
@@ -46,9 +48,9 @@ export default function AppRouter() {
               <Route
                 path="/togethers/:id/edit"
                 element={
-                  <ProtectedRoute>
-                    <ProjectEdit />
-                  </ProtectedRoute>
+                  // <ProtectedRoute>
+                  <ProjectEdit />
+                  // </ProtectedRoute>
                 }
               />
               <Route
@@ -78,13 +80,17 @@ export default function AppRouter() {
               <Route
                 path="/profile/responses"
                 element={
-                  <ProtectedRoute>{/* <ResponseList /> */}</ProtectedRoute>
+                  // <ProtectedRoute>
+                  <ResponseList />
+                  // </ProtectedRoute>
                 }
               />
               <Route
                 path="/profile/requests"
                 element={
-                  <ProtectedRoute>{/* <RequestList /> */}</ProtectedRoute>
+                  // <ProtectedRoute>
+                  <RequestList />
+                  // </ProtectedRoute>
                 }
               />
               <Route
