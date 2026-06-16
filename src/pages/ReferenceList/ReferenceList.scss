@@ -1,4 +1,305 @@
-@use "@/styles/variables" as *;
+@use "@/styles/main" as *;
 
 .reference-list-page {
+  padding: $spacing-2xl 0 $spacing-3xl;
+}
+
+.reference-list-header {
+  margin-bottom: $spacing-xl;
+}
+
+.reference-list-eyebrow {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.reference-list-title {
+  margin-top: $spacing-xs;
+  font-size: $font-size-2xl;
+  line-height: $line-height-tight;
+}
+
+.reference-list-subtitle {
+  margin-top: $spacing-sm;
+  max-width: 42rem;
+  color: $text-secondary;
+  line-height: $line-height-normal;
+}
+
+.reference-list-add {
+  @include button-base;
+
+  margin-top: $spacing-md;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-list-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-lg;
+}
+
+.reference-list-tab {
+  @include button-base;
+
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $gray-300;
+  border-radius: $radius-full;
+  background: $bg-primary;
+  color: $text-secondary;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-list-tab-active {
+  background: $primary;
+  border-color: $primary;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+}
+
+.reference-list-alert {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background: $danger-light;
+  color: $danger;
+  font-size: $font-size-sm;
+}
+
+.reference-list-status {
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  color: $text-secondary;
+  text-align: center;
+}
+
+.reference-list-status-error {
+  border-color: $danger-light;
+  background: $danger-light;
+  color: $danger;
+}
+
+.reference-list-empty {
+  @include flex-col-center;
+
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px dashed $gray-300;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  text-align: center;
+}
+
+.reference-list-empty-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.reference-list-empty-description {
+  margin-top: $spacing-xs;
+  color: $text-secondary;
+}
+
+.reference-list-empty-link {
+  margin-top: $spacing-lg;
+  padding: $spacing-sm $spacing-lg;
+  border: none;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  font-family: inherit;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-list-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-lg;
+
+  @include tablet-up {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include desktop {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.reference-card {
+  @include card-hover;
+  @include flex-column;
+
+  height: 100%;
+  padding: $spacing-lg;
+  gap: $spacing-sm;
+}
+
+.reference-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.reference-card-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  word-break: break-word;
+}
+
+.reference-card-scrap {
+  @include button-base;
+
+  flex-shrink: 0;
+  padding: $spacing-xs $spacing-sm;
+  border: 1px solid $gray-300;
+  border-radius: $radius-full;
+  background: $bg-primary;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+
+  &[aria-pressed="true"] {
+    border-color: $danger;
+    color: $danger;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-card-scrap-icon {
+  font-size: $font-size-sm;
+  line-height: 1;
+}
+
+.reference-card-description {
+  @include text-clamp(3);
+
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+}
+
+.reference-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.reference-card-tag {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+  background: $gray-100;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+}
+
+.reference-card-owner-actions {
+  display: flex;
+  gap: $spacing-xs;
+  justify-content: flex-end;
+}
+
+.reference-card-owner-button {
+  @include button-base;
+
+  padding: $spacing-xs $spacing-sm;
+  background: transparent;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-card-owner-button-danger {
+  color: $danger;
+
+  &:hover {
+    color: $danger;
+  }
+}
+
+.reference-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  margin-top: auto;
+  padding-top: $spacing-sm;
+  border-top: 1px solid $gray-200;
+}
+
+.reference-card-like {
+  @include button-base;
+
+  padding: $spacing-xs $spacing-sm;
+  border: 1px solid $gray-300;
+  border-radius: $radius-full;
+  background: $bg-primary;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+
+  &[aria-pressed='true'] {
+    border-color: $success;
+    background: $success-light;
+    color: $success;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.reference-card-like-icon {
+  font-size: $font-size-xs;
+  line-height: 1;
+}
+
+.reference-card-like-count {
+  font-weight: $font-weight-semibold;
+}
+
+.reference-card-meta {
+  color: $text-muted;
+  font-size: $font-size-xs;
 }
