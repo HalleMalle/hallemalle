@@ -7,20 +7,6 @@ import "./Login.scss";
 
 const DEFAULT_REDIRECT_PATH = "/togethers";
 
-function getLoginErrorMessage(error) {
-  const code = error?.code || "";
-
-  if (code.includes("popup-closed-by-user") || code.includes("cancelled-popup-request")) {
-    return "로그인이 취소되었어요. 다시 시도해주세요.";
-  }
-
-  if (code.includes("popup-blocked")) {
-    return "팝업이 차단되었어요. 브라우저 팝업 허용 후 다시 시도해주세요.";
-  }
-
-  return error?.message || "GitHub 로그인 설정 후 사용할 수 있어요.";
-}
-
 export default function Login() {
   const auth = useAuth();
   const navigate = useNavigate();
@@ -31,13 +17,27 @@ export default function Login() {
   const isAuthLoading = Boolean(auth?.loading);
   const signIn = auth?.signIn;
 
+  const getLoginErrorMessage = (error) => {
+    const code = error?.code || "";
+
+    if (code.includes("popup-closed-by-user") || code.includes("cancelled-popup-request")) {
+      return "로그인이 취소되었어요. 다시 시도해주세요.";
+    }
+
+    if (code.includes("popup-blocked")) {
+      return "팝업이 차단되었어요. 브라우저 팝업 허용 후 다시 시도해주세요.";
+    }
+
+    return error?.message || "GitHub 로그인 설정 후 사용할 수 있어요.";
+  };
+
   useEffect(() => {
     if (!isAuthLoading && isAuthenticated) {
       navigate(DEFAULT_REDIRECT_PATH, { replace: true });
     }
   }, [isAuthLoading, isAuthenticated, navigate]);
 
-  async function handleGithubLogin() {
+  const handleGithubLogin = async () => {
     setErrorMessage("");
     setIsSubmitting(true);
 
@@ -53,7 +53,7 @@ export default function Login() {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <main className="login-page">
@@ -85,7 +85,7 @@ export default function Login() {
         </button>
 
         <p className="login-note">
-          로그인하면 서비스 이용 목적에 맞는 GitHub 기본 프로필 정보가 연결됩니다.
+          로그인 시 서비스 제공을 위한 GitHub 기본 프로필 정보가 연동됩니다.
         </p>
       </section>
     </main>
