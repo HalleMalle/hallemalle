@@ -132,7 +132,11 @@ export default function Portfolio() {
   }, [user?.uid])
 
   const languageEntries = useMemo(
-    () => Object.entries(profile?.github_language_json || {}),
+    () => Object.entries(profile?.github_language_json || {})
+      .filter(([, ratio]) => Number(ratio) > 0)
+      .sort(([, firstRatio], [, secondRatio]) => (
+        Number(secondRatio) - Number(firstRatio)
+      )),
     [profile?.github_language_json],
   )
 
