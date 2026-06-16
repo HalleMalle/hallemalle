@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { getMyProfile, updateProfile } from '@/api/profile'
+import { getMyProfile, syncGithubPortfolio, updateProfile } from '@/api/profile'
 import { useAuth } from '@/contexts/AuthContext'
 
 import './Profile.scss'
@@ -48,6 +48,27 @@ function ProfileLinkItem({ to, title, description }) {
   )
 }
 
+function ProfileLanguageList({ languages }) {
+  if (!languages.length) {
+    return (
+      <p className='profile-language-empty'>
+        언어 비율은 GitHub 동기화 후 표시됩니다.
+      </p>
+    )
+  }
+
+  return (
+    <div className='profile-language-list'>
+      {languages.map(([language, ratio]) => (
+        <div className='profile-language-item' key={language}>
+          <span>{language}</span>
+          <strong>{ratio}%</strong>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function Profile() {
   const { user, updateUser } = useAuth()
   const [profile, setProfile] = useState(null)
@@ -56,6 +77,7 @@ export default function Profile() {
   const [isEditingName, setIsEditingName] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isSyncingPortfolio, setIsSyncingPortfolio] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -142,6 +164,24 @@ export default function Profile() {
     }
   }
 
+  const handleSyncGithubPortfolio = async () => {
+    setIsSyncingPortfolio(true)
+    setErrorMessage('')
+    setSuccessMessage('')
+
+    try {
+      const nextProfile = await syncGithubPortfolio(user?.uid)
+
+      setProfile(nextProfile)
+      updateUser(nextProfile)
+      setSuccessMessage('GitHub 포트폴리오를 동기화했습니다.')
+    } catch (error) {
+      setErrorMessage(getProfileErrorMessage(error))
+    } finally {
+      setIsSyncingPortfolio(false)
+    }
+  }
+
   function getProfileErrorMessage(error) {
     return error?.message || '프로필 정보를 처리하지 못했습니다.'
   }
@@ -183,6 +223,7 @@ export default function Profile() {
   const githubSyncedAt = profile.github_synced_at?.toDate
     ? profile.github_synced_at.toDate().toLocaleDateString('ko-KR')
     : '동기화 전'
+  const languageEntries = Object.entries(profile.github_language_json || {})
 
   return (
     <main className='profile-page'>
@@ -324,9 +365,22 @@ export default function Profile() {
               <h2 id='profile-github-title'>GitHub 요약</h2>
               <p>포트폴리오 동기화 후 최신 활동 요약이 표시됩니다.</p>
             </div>
-            <Link to='/profile/portfolio' className='profile-secondary-button'>
-              포트폴리오 보기
-            </Link>
+            <div className='profile-section-actions'>
+              <button
+                type='button'
+                className='profile-primary-button'
+                onClick={handleSyncGithubPortfolio}
+                disabled={isSyncingPortfolio}
+              >
+                {isSyncingPortfolio ? '동기화 중' : 'GitHub 동기화'}
+              </button>
+              <Link
+                to='/profile/portfolio'
+                className='profile-secondary-button'
+              >
+                포트폴리오 보기
+              </Link>
+            </div>
           </div>
 
           <div className='profile-metrics'>
@@ -345,6 +399,7 @@ export default function Profile() {
             />
             <ProfileMetric label='스타' value={profile.github_stars || 0} />
           </div>
+          <ProfileLanguageList languages={languageEntries} />
         </section>
 
         <section

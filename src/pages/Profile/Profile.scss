@@ -91,6 +91,13 @@
   }
 }
 
+.profile-section-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: $spacing-sm;
+  align-items: center;
+}
+
 .profile-primary-button,
 .profile-secondary-button {
   min-height: 40px;
@@ -274,6 +281,41 @@
   font-size: $font-size-sm;
 }
 
+.profile-language-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.profile-language-item {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: $spacing-sm 0;
+  border-bottom: 1px solid $gray-200;
+
+  span {
+    min-width: 0;
+    color: $text-secondary;
+    font-size: $font-size-sm;
+    word-break: break-word;
+  }
+
+  strong {
+    flex: 0 0 auto;
+    font-size: $font-size-sm;
+  }
+}
+
+.profile-language-empty {
+  margin-top: $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+}
+
 .profile-links {
   display: grid;
   gap: $spacing-sm;
@@ -352,16 +394,24 @@
     display: grid;
   }
 
+  .profile-section-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
   .profile-name-controls {
     display: grid;
   }
 
   .profile-info-list,
+  .profile-language-list,
   .profile-metrics {
     grid-template-columns: 1fr;
   }
 
   .profile-primary-button,
+  .profile-section-actions .profile-secondary-button,
+  .profile-section-actions .profile-primary-button,
   .profile-section-header .profile-secondary-button,
   .profile-name-actions .profile-secondary-button,
   .profile-name-actions .profile-primary-button,
