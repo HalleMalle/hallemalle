@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import {
   getLikedReferenceIds,
@@ -24,6 +25,7 @@ const VIEW_TO_SORT = {
 export default function useReferences() {
   const { user } = useAuth()
   const uid = user?.uid
+  const navigate = useNavigate()
 
   const [view, setView] = useState('LATEST')
   const [references, setReferences] = useState([])
@@ -126,7 +128,7 @@ export default function useReferences() {
       }
 
       if (!uid) {
-        setScrapError('로그인이 필요한 기능입니다.')
+        navigate('/login')
         return
       }
 
@@ -182,7 +184,7 @@ export default function useReferences() {
         setScrapError(error?.message || '찜 처리에 실패했습니다.')
       }
     },
-    [uid, scrappedIds]
+    [uid, scrappedIds, navigate]
   )
 
   // 추천(Like) 토글: 추천 여부와 추천 수를 낙관적으로 갱신하고, 실패 시 되돌린다.
@@ -193,7 +195,7 @@ export default function useReferences() {
       }
 
       if (!uid) {
-        setLikeError('로그인이 필요한 기능입니다.')
+        navigate('/login')
         return
       }
 
@@ -264,7 +266,7 @@ export default function useReferences() {
         setLikeError(error?.message || '추천 처리에 실패했습니다.')
       }
     },
-    [uid, likedIds]
+    [uid, likedIds, navigate]
   )
 
   const referencesWithMeta = useMemo(() => {
