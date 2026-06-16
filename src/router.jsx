@@ -40,9 +40,9 @@ export default function AppRouter() {
               <Route
                 path="/togethers/write"
                 element={
-                  // <ProtectedRoute>
-                  <ProjectCreate />
-                  // </ProtectedRoute>
+                  <ProtectedRoute>
+                    <ProjectCreate />
+                  </ProtectedRoute>
                 }
               />
               <Route
