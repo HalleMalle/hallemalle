@@ -1,4 +1,563 @@
 @use "@/styles/main" as *;
 
+// 폼 전체
 .project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// 필드 공통
+.required-text {
+  color: $danger;
+  font-weight: bold;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $font-size-xs;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  color: $text-secondary;
+  text-transform: uppercase;
+
+  &-count {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 400;
+    color: $gray-800;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  &-hint {
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+// 인풋
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  font-size: 14px;
+  color: $primary;
+  background: $white;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: $gray-800;
+  }
+
+  &:focus {
+    border-color: #9ca3af;
+  }
+
+  &--date {
+    width: 10px;
+    flex: 1;
+
+    &::-webkit-calendar-picker-indicator {
+      opacity: 0;
+    }
+  }
+
+  &--num {
+    width: 70px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  &--contact {
+    flex: 1;
+
+    @include mobile {
+      flex: none;
+    }
+  }
+}
+
+.text-box {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  font-size: 14px;
+  color: $primary;
+  background: $white;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  line-height: 1.6;
+  font-family: inherit;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: $gray-800;
+  }
+
+  &:focus {
+    border-color: #9ca3af;
+  }
+}
+
+// 셀렉트
+.select-wrap {
+  position: relative;
+
+  &::after {
+    content: "▾";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 12px;
+    color: $text-secondary;
+  }
+
+  &--sm {
+    min-width: 90px;
+  }
+
+  &--contact {
+    width: 130px;
+    flex-shrink: 0;
+
+    @include mobile {
+      width: 100%;
+    }
+  }
+}
+
+.select {
+  width: 100%;
+  height: 44px;
+  padding: 0 32px 0 14px;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  font-size: 14px;
+  color: $primary;
+  background: $white;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: #9ca3af;
+  }
+}
+
+// 2열 행
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// 날짜 범위─
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  padding: 0 12px;
+  height: 44px;
+  background: $white;
+
+  .input {
+    height: auto;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+
+    &:focus {
+      border: none;
+    }
+  }
+}
+
+.date-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  color: $text-secondary;
+}
+
+.date-sep {
+  color: $text-secondary;
+  font-size: 13px;
+}
+
+// 희망 인원─
+.headcount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  padding: 0 12px;
+  height: 44px;
+  background: $white;
+
+  .input {
+    height: auto;
+    border: none;
+    padding: 0;
+    width: 50px;
+
+    &:focus {
+      border: none;
+    }
+  }
+
+  &-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    color: $text-secondary;
+  }
+
+  &-suffix {
+    font-size: 13px;
+    color: $text-secondary;
+    white-space: nowrap;
+  }
+}
+
+// 참여 단계 버튼 ─
+.stage-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stage-btn {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: $radius-md;
+  border: 1px solid $gray-300;
+  background: $white;
+  font-size: 13px;
+  font-weight: 500;
+  color: $text-secondary;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    border-color: #9ca3af;
+    color: $primary;
+  }
+
+  &--active {
+    background: $primary;
+    color: #fff;
+    border-color: $primary;
+
+    &:hover {
+      background: #333;
+      border-color: #333;
+      color: #fff;
+    }
+  }
+}
+
+// 롤 태그
+.role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.role-tag {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 20px;
+  border: 1px solid $gray-300;
+  background: $white;
+  font-size: 13px;
+  font-weight: 500;
+  color: $text-secondary;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    border-color: #9ca3af;
+    color: $primary;
+  }
+
+  &--active {
+    background: $primary;
+    color: #fff;
+    border-color: $primary;
+  }
+}
+
+// 롤별 인원─
+.role-counts {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.role-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid $gray-300;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.role-count-label {
+  font-size: 14px;
+  color: $primary;
+  font-weight: 500;
+}
+
+// 썸네일
+.thumbnail {
+  border: 1.5px dashed $gray-300;
+  border-radius: $radius-lg;
+  background: $white-soft;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: #9ca3af;
+    background: #f5f5f5;
+  }
+
+  &--filled {
+    border-style: solid;
+    border-color: $gray-300;
+    background: #fff;
+  }
+
+  &__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  &__icon {
+    font-size: 28px;
+    opacity: 0.4;
+  }
+
+  &__text {
+    font-size: 13px;
+    color: $text-secondary;
+    margin: 0;
+    font-weight: 500;
+  }
+
+  &__hint {
+    font-size: 11px;
+    color: $gray-800;
+    margin: 0;
+  }
+
+  &__img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+// 기획 문서─
+.doc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  background: $white-soft;
+  margin-bottom: 8px;
+}
+
+.doc-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.doc-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doc-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: $primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-size {
+  font-size: 11px;
+  color: $gray-800;
+}
+
+.doc-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.add-doc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: $success;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// 연락 수단─
+.contact {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  @include mobile {
+    flex-direction: column;
+  }
+}
+
+// 숨김 인풋─
+.hidden-input {
+  display: none;
+}
+
+// 구분선
+.divider {
+  height: 1px;
+  background: $gray-300;
+  margin: 4px 0;
+}
+
+// 하단 액션 버튼
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &__right {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+.btn {
+  height: 42px;
+  padding: 0 22px;
+  border-radius: $radius-md;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    opacity 0.15s;
+
+  &--ghost {
+    background: none;
+    border: none;
+    color: $text-secondary;
+    padding: 0;
+
+    &:hover {
+      color: $primary;
+    }
+  }
+
+  &--outline {
+    background: #fff;
+    border: 1px solid $gray-300;
+    color: $primary;
+
+    &:hover {
+      border-color: #9ca3af;
+    }
+  }
+
+  &--primary {
+    background: $primary;
+    border: 1px solid $primary;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: #333;
+      border-color: #333;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
 }

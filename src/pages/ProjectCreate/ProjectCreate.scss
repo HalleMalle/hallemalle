@@ -1,4 +1,87 @@
 @use "@/styles/main" as *;
 
 .project-create-page {
+  min-height: 100vh;
+  background-color: $white-soft;
+  padding: 40px 24px 80px;
+}
+
+.project-create-page-layout {
+  display: flex;
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+  align-items: flex-start;
+}
+
+.project-create-page-sidebar {
+  flex-shrink: 0;
+  width: 200px;
+  position: sticky;
+  top: 40px;
+
+  &__header {
+    margin-bottom: 20px;
+  }
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 4px;
+    letter-spacing: -0.3px;
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: #888;
+    margin: 0;
+  }
+
+  &__draft {
+    background: #fff;
+    border: 1px solid $gray-200;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  &__draft-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: #111;
+    margin: 0 0 6px;
+  }
+
+  &__draft-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.project-create-page-main {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: 14px;
+  padding: 32px 36px;
+}
+
+@media (max-width: 720px) {
+  .project-create-page-layout {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .project-create-page-sidebar {
+    width: 100%;
+    position: static;
+  }
+
+  .project-create-page-main {
+    padding: 24px 20px;
+  }
 }
