@@ -84,6 +84,10 @@
 
   &--contact {
     flex: 1;
+
+    @include mobile {
+      flex: none;
+    }
   }
 }
 
@@ -133,6 +137,10 @@
   &--contact {
     width: 130px;
     flex-shrink: 0;
+
+    @include mobile {
+      width: 100%;
+    }
   }
 }
 
@@ -473,6 +481,10 @@
   display: flex;
   gap: 10px;
   align-items: center;
+
+  @include mobile {
+    flex-direction: column;
+  }
 }
 
 // 숨김 인풋─
