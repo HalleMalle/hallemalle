@@ -20,6 +20,7 @@ import RequestList from "@/pages/RequestList";
 import ResponseList from "@/pages/ResponseList";
 import MyProjects from "@/pages/MyProjects";
 import RetrospectiveList from "@/pages/RetrospectiveList";
+import RetrospectiveDetail from "@/pages/RetrospectiveDetail";
 import ReviewWrite from "@/pages/ReviewWrite";
 
 export default function AppRouter() {
@@ -129,6 +130,14 @@ export default function AppRouter() {
                 element={
                   <ProtectedRoute>
                     <MyScrappedReferences />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/memoirs/:memoirId"
+                element={
+                  <ProtectedRoute>
+                    <RetrospectiveDetail />
                   </ProtectedRoute>
                 }
               />

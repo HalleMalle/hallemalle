@@ -1,0 +1,62 @@
+@use "@/styles/main" as *;
+
+.retrospective-detail-page {
+  padding: $spacing-2xl 0 $spacing-3xl;
+}
+
+.retrospective-detail-back {
+  display: inline-block;
+  margin-bottom: $spacing-lg;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.retrospective-detail-status {
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  color: $text-secondary;
+  text-align: center;
+}
+
+.retrospective-detail-status-error {
+  border-color: $danger-light;
+  background: $danger-light;
+  color: $danger;
+}
+
+.retrospective-detail {
+  max-width: 48rem;
+}
+
+.retrospective-detail-header {
+  padding-bottom: $spacing-md;
+  margin-bottom: $spacing-lg;
+  border-bottom: 1px solid $gray-200;
+}
+
+.retrospective-detail-title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  word-break: break-word;
+}
+
+.retrospective-detail-meta {
+  display: block;
+  margin-top: $spacing-sm;
+  color: $text-muted;
+  font-size: $font-size-sm;
+}
+
+.retrospective-detail-content {
+  color: $text-primary;
+  line-height: $line-height-normal;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
