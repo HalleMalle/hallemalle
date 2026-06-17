@@ -1,4 +1,116 @@
 @use "@/styles/main" as *;
 
 .notification-dropdown {
+  position: absolute;
+  top: calc(100% + #{$spacing-xs});
+  right: 0;
+  z-index: 50;
+  width: 20rem;
+  max-width: calc(100vw - #{$spacing-lg});
+  padding: $spacing-sm;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg;
+  background: $bg-primary;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.notification-dropdown-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-xs $spacing-sm;
+}
+
+.notification-dropdown-title {
+  font-weight: $font-weight-bold;
+}
+
+.notification-dropdown-readall {
+  @include button-base;
+
+  color: $text-secondary;
+  font-size: $font-size-xs;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.notification-dropdown-empty {
+  padding: $spacing-xl $spacing-sm;
+  color: $text-muted;
+  font-size: $font-size-sm;
+  text-align: center;
+}
+
+.notification-dropdown-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.notification-dropdown-item {
+  @include button-base;
+
+  display: flex;
+  gap: $spacing-sm;
+  width: 100%;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  text-align: left;
+
+  &:hover {
+    background: $bg-secondary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: -2px;
+  }
+}
+
+// 확인한 알림은 약간의 음영(투명도)을 준다.
+.notification-dropdown-item-read {
+  opacity: 0.55;
+}
+
+.notification-dropdown-icon {
+  flex-shrink: 0;
+  font-size: $font-size-lg;
+  line-height: 1.4;
+}
+
+.notification-dropdown-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.notification-dropdown-message {
+  color: $text-primary;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+  word-break: break-word;
+}
+
+.notification-dropdown-time {
+  color: $text-muted;
+  font-size: $font-size-xs;
+}
+
+.notification-dropdown-all {
+  display: block;
+  margin-top: $spacing-xs;
+  padding: $spacing-sm;
+  border-top: 1px solid $gray-200;
+  color: $primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  text-align: center;
+
+  &:hover {
+    background: $bg-secondary;
+  }
 }

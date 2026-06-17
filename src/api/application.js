@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "./firebase";
+import { createNotification } from "./notifications";
 
 const APPLICANTS_COL = "applicants";
 const ATTACHMENTS_COL = "applicant_attachments";
@@ -145,6 +146,26 @@ export async function applyToProject(postId, uid, formData) {
     });
   }
 
+  // 구인 작성자에게 신청 알림 (best-effort: 실패해도 신청은 유지)
+  try {
+    const togetherSnap = await getDoc(doc(db, TOGETHERS_COL, postId));
+    const ownerUid = togetherSnap.exists()
+      ? togetherSnap.data().created_by
+      : null;
+
+    if (ownerUid && ownerUid !== uid) {
+      await createNotification({
+        receiverUid: ownerUid,
+        type: "APPLICATION_RECEIVED",
+        message: "새로운 참여 신청이 도착했어요.",
+        refProjectId: postId,
+        refApplicationId: applicantRef.id,
+      });
+    }
+  } catch {
+    // 알림 실패는 신청 결과에 영향 주지 않는다.
+  }
+
   return applicantRef.id;
 }
 
@@ -186,6 +207,12 @@ export async function approveApplication(applicantId) {
     status: "approved",
     reviewed_at: serverTimestamp(),
   });
+
+  await notifyApplicant(
+    applicantId,
+    "APPLICATION_APPROVED",
+    "참여 신청이 승인되었어요."
+  );
 }
 
 /**
@@ -196,6 +223,33 @@ export async function rejectApplication(applicantId) {
     status: "rejected",
     reviewed_at: serverTimestamp(),
   });
+
+  await notifyApplicant(
+    applicantId,
+    "APPLICATION_REJECTED",
+    "참여 신청이 반려되었어요."
+  );
+}
+
+// 신청자에게 승인/반려 알림 (best-effort: 실패해도 처리 결과는 유지)
+async function notifyApplicant(applicantId, type, message) {
+  try {
+    const snap = await getDoc(doc(db, APPLICANTS_COL, applicantId));
+    if (!snap.exists()) return;
+
+    const { uid, post_id } = snap.data();
+    if (!uid) return;
+
+    await createNotification({
+      receiverUid: uid,
+      type,
+      message,
+      refProjectId: post_id || null,
+      refApplicationId: applicantId,
+    });
+  } catch {
+    // 알림 실패는 승인/반려 결과에 영향 주지 않는다.
+  }
 }
 
 /**
