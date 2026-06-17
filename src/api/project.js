@@ -117,7 +117,7 @@ export async function createProject(formData, userId) {
     current_member_count: Number(formData.currentMemberCount || 0), // int (>=0)
     contact_type: formData.contactType || "email", // 'email' | 'kakao' | 'link' | 'other'
     contact_value: formData.contactValue || "",
-    view_count: 0, // 💡 규칙 필수: 반드시 정확히 0 이여야 함
+    view_count: 0, // 규칙 필수: 반드시 정확히 0 이여야 함
     is_private: Boolean(formData.isPrivate || false), // bool
     thumbnail_url: thumbnailUrl,
     recruitment_start:
@@ -130,8 +130,8 @@ export async function createProject(formData, userId) {
       formData.recruitment_end ||
       formData.endDate ||
       "",
-    created_at: serverTimestamp(), // 💡 규칙 필수: request.time과 동치
-    updated_at: serverTimestamp(), // 💡 규칙 필수: request.time과 동치
+    created_at: serverTimestamp(), // 규칙 필수: request.time과 동치
+    updated_at: serverTimestamp(), // 규칙 필수: request.time과 동치
   };
 
   // 1. 메인 프로젝트 다큐먼트 먼저 생성
