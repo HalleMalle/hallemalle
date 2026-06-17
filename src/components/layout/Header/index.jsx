@@ -2,14 +2,14 @@ import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import NotificationDropdown from "@/components/NotificationDropdown";
 
 import "./Header.scss";
 
 export default function Header() {
   const { user, isAuthenticated, signOut } = useAuth();
-  // TODO: const { unreadCount } = useNotifications();
-  const unreadCount = 0; // 임시값
+  const { unreadCount } = useNotifications();
   const [showNotif, setShowNotif] = useState(false);
 
   const toggleNotif = useCallback(() => setShowNotif((v) => !v), []);
