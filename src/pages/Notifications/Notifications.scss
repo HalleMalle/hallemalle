@@ -1,4 +1,135 @@
 @use "@/styles/main" as *;
 
 .notifications-page {
+  padding: $spacing-2xl 0 $spacing-3xl;
+}
+
+.notifications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xl;
+}
+
+.notifications-title {
+  font-size: $font-size-2xl;
+  line-height: $line-height-tight;
+}
+
+.notifications-readall {
+  @include button-base;
+
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $gray-300;
+  border-radius: $radius-full;
+  background: $bg-primary;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.notifications-status {
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  color: $text-secondary;
+  text-align: center;
+}
+
+.notifications-empty {
+  @include flex-col-center;
+
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px dashed $gray-300;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  text-align: center;
+}
+
+.notifications-empty-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.notifications-empty-description {
+  margin-top: $spacing-xs;
+  color: $text-secondary;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.notifications-item {
+  @include button-base;
+
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  width: 100%;
+  padding: $spacing-md;
+  border: 1px solid $gray-200;
+  border-radius: $radius-md;
+  background: $bg-primary;
+  text-align: left;
+
+  &:hover {
+    background: $bg-secondary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: -2px;
+  }
+}
+
+// 확인한 알림은 약간의 음영(투명도)을 준다.
+.notifications-item-read {
+  opacity: 0.55;
+}
+
+.notifications-icon {
+  flex-shrink: 0;
+  font-size: $font-size-lg;
+  line-height: 1.4;
+}
+
+.notifications-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.notifications-message {
+  color: $text-primary;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+  word-break: break-word;
+}
+
+.notifications-time {
+  color: $text-muted;
+  font-size: $font-size-xs;
+}
+
+.notifications-unread-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: $radius-full;
+  background: $primary;
 }
