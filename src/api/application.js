@@ -4,6 +4,7 @@ import {
   collection,
   doc,
   setDoc,
+  getDoc,
   getDocs,
   updateDoc,
   deleteDoc,
@@ -16,6 +17,8 @@ import { db } from "./firebase";
 
 const APPLICANTS_COL = "applicants";
 const ATTACHMENTS_COL = "applicant_attachments";
+const TOGETHERS_COL = "togethers";
+const USERS_COL = "users";
 
 function createApplicantError(code, message) {
   const error = new Error(message);
@@ -24,18 +27,36 @@ function createApplicantError(code, message) {
 }
 
 /**
- * applicants 도큐먼트 하나에 첨부 링크를 합쳐 반환합니다.
+ * applicants 도큐먼트 하나에 첨부 링크 + 신청자 유저 정보를 합쳐 반환합니다.
  */
 async function hydrateApplicant(applicantDoc) {
   const data = { id: applicantDoc.id, ...applicantDoc.data() };
 
-  const attachmentsSnap = await getDocs(
-    query(
-      collection(db, ATTACHMENTS_COL),
-      where("applicant_id", "==", applicantDoc.id)
-    )
-  );
-  data.attachments = attachmentsSnap.docs.map((d) => d.data());
+  // 첨부 링크 병렬 조회
+  const [attachmentsSnap, userSnap] = await Promise.all([
+    getDocs(
+      query(
+        collection(db, ATTACHMENTS_COL),
+        where("applicant_id", "==", applicantDoc.id)
+      )
+    ),
+    data.uid ? getDoc(doc(db, USERS_COL, data.uid)) : Promise.resolve(null),
+  ]);
+
+  data.attachments = attachmentsSnap.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+  }));
+
+  data.applicantUser = userSnap?.exists()
+    ? {
+        display_name: userSnap.data().display_name,
+        photo_url: userSnap.data().photo_url || null,
+        tier: userSnap.data().tier,
+        collaboration_score: userSnap.data().collaboration_score,
+        github_login: userSnap.data().github_login,
+      }
+    : null;
 
   return data;
 }
@@ -194,4 +215,61 @@ export async function getApplicantsByPost(postId, statusFilter) {
   );
 
   return Promise.all(snap.docs.map(hydrateApplicant));
+}
+
+/**
+ * 7. 내가 만든 Together 목록 조회 (신청자 목록 및 대기자 정보 포함)
+ */
+export async function getMyTogethers(uid) {
+  if (!uid) return [];
+
+  // 1. 내가 만든 프로젝트 목록 조회
+  const snap = await getDocs(
+    query(collection(db, TOGETHERS_COL), where("created_by", "==", uid))
+  );
+
+  const togetherList = snap.docs.map((d) => ({ post_id: d.id, ...d.data() }));
+
+  // 2. 각 프로젝트별 신청자 목록을 병렬로 조회하여 결합 (하이드레이션 포함)
+  return Promise.all(
+    togetherList.map(async (together) => {
+      const applicantsForThisPost = await getApplicantsByPost(together.post_id);
+      return {
+        ...together,
+        applicants: applicantsForThisPost, // 신청자 배열 주입
+      };
+    })
+  );
+}
+
+/**
+ * 내가 신청한 모든 지원서 목록 조회 (프로젝트 정보 포함)
+ */
+export async function getMyApplications(uid) {
+  if (!uid) return [];
+
+  const snap = await getDocs(
+    query(collection(db, APPLICANTS_COL), where("uid", "==", uid))
+  );
+
+  const applicationList = [];
+
+  for (const docSnap of snap.docs) {
+    const applicantData = await hydrateApplicant(docSnap);
+
+    let togetherData = null;
+    if (applicantData.post_id) {
+      const tSnap = await getDoc(doc(db, TOGETHERS_COL, applicantData.post_id));
+      if (tSnap.exists()) {
+        togetherData = { post_id: tSnap.id, ...tSnap.data() };
+      }
+    }
+
+    applicationList.push({
+      ...applicantData,
+      together: togetherData,
+    });
+  }
+
+  return applicationList;
 }

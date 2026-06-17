@@ -1,22 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
-// 💡 API 연동 전이므로 Firebase import 주석 처리
-/*
 import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  updateDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "@/firebase";
+  getMyTogethers,
+  approveApplication,
+  rejectApplication,
+} from "@/api/application";
+
 import { useAuth } from "@/contexts/AuthContext";
-*/
 
 import "./ResponseList.scss";
 
@@ -41,100 +32,15 @@ const ATTACHMENT_ICONS = {
   other: "🔗",
 };
 
-const MOCK_TOGETHERS = [
-  {
-    post_id: "project_01",
-    title: "React를 활용한 매칭 서비스 사이드 프로젝트",
-    total_headcount: 5,
-  },
-  {
-    post_id: "project_02",
-    title: "공모전 프로젝트",
-    total_headcount: 5,
-  },
-];
-
-const MOCK_APPLICANTS = [
-  {
-    id: "app_01",
-    post_id: "project_01",
-    uid: "user_01",
-    applied_role: "Frontend Engineer",
-    status: "pending",
-    wait_time: 0,
-    applied_at: { seconds: Math.floor((Date.now() - 10 * 60 * 1000) / 1000) },
-    applicantUser: {
-      display_name: "김철수",
-      photo_url:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
-    },
-    attachments: [
-      { id: "at_01", type: "github", url: "https://github.com" },
-      { id: "at_02", type: "cv_pdf", url: "https://example.com/cv.pdf" },
-    ],
-  },
-  {
-    id: "app_02",
-    post_id: "project_01",
-    uid: "user_02",
-    applied_role: "UI/UX Designer",
-    status: "pending",
-    wait_time: 24,
-    applied_at: {
-      seconds: Math.floor((Date.now() - 25 * 60 * 60 * 1000) / 1000),
-    },
-    applicantUser: {
-      display_name: "이영희",
-      photo_url: null,
-    },
-    attachments: [{ id: "at_03", type: "behance", url: "https://behance.net" }],
-  },
-  {
-    id: "app_03",
-    post_id: "project_01",
-    uid: "user_03",
-    applied_role: "Backend Engineer",
-    status: "approved",
-    wait_time: 5,
-    applied_at: {
-      seconds: Math.floor((Date.now() - 5 * 24 * 60 * 60 * 1000) / 1000),
-    },
-    applicantUser: {
-      display_name: "박민수",
-      photo_url:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-    },
-    attachments: [
-      { id: "at_04", type: "linkedin", url: "https://linkedin.com" },
-    ],
-  },
-  {
-    id: "app_04",
-    post_id: "project_01",
-    uid: "user_04",
-    applied_role: "Product Manager",
-    status: "rejected",
-    wait_time: 12,
-    applied_at: {
-      seconds: Math.floor((Date.now() - 3 * 24 * 60 * 60 * 1000) / 1000),
-    },
-    applicantUser: {
-      display_name: "정지원",
-      photo_url: null,
-    },
-    attachments: [],
-  },
-];
-
 function formatAppliedAt(dateValue) {
   if (!dateValue) return "";
 
-  // 목업 데이터 구조({ seconds }) 혹은 Date 객체에 대응 가능하도록 보완
   const date = dateValue?.seconds
     ? new Date(dateValue.seconds * 1000)
     : dateValue?.toDate
       ? dateValue.toDate()
       : new Date(dateValue);
+
   const diffMs = Date.now() - date.getTime();
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
@@ -143,7 +49,6 @@ function formatAppliedAt(dateValue) {
 
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays === 1) return "1일 전에 신청함";
-
   return `${diffDays}일 전에 신청함`;
 }
 
@@ -176,6 +81,7 @@ function ApplicantCard({ applicant, onApprove, onReject, isActionLoading }) {
     wait_time,
     applied_at,
     attachments = [],
+    message,
   } = applicant;
 
   const isNew = wait_time === 0;
@@ -220,6 +126,10 @@ function ApplicantCard({ applicant, onApprove, onReject, isActionLoading }) {
         <p className="responses-page__applicant-role-time">
           {applied_role} • {formatAppliedAt(applied_at)}
         </p>
+
+        {message && (
+          <p className="responses-page__applicant-message">{message}</p>
+        )}
 
         {attachments.length > 0 && (
           <div className="responses-page__applicant-attachments">
@@ -270,7 +180,7 @@ function ApplicantCard({ applicant, onApprove, onReject, isActionLoading }) {
       {status === "approved" && (
         <div className="responses-page__applicant-actions">
           <span className="responses-page__status-label responses-page__status-label--approved">
-            ✓ 승인
+            ✓ 승인됨
           </span>
         </div>
       )}
@@ -289,21 +199,44 @@ function ApplicantCard({ applicant, onApprove, onReject, isActionLoading }) {
 export default function ResponseList() {
   const navigate = useNavigate();
 
-  const [activePostId, setActivePostId] = useState("project_01");
-  const [togethers, setTogethers] = useState(null);
-  const [applicants, setApplicants] = useState([]);
+  const { user } = useAuth();
+  const uid = user?.uid;
+
+  const [activePostId, setActivePostId] = useState(null);
+  const [togethers, setTogethers] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
   const [sortBy, setSortBy] = useState("newest");
   const [isSortOpen, setIsSortOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [togethersLoading, setTogethersLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
+  const [error, setError] = useState(null);
 
-  const totalCount = applicants.length;
-  const pendingList = applicants.filter((a) => a.status === "pending");
-  const approvedList = applicants.filter((a) => a.status === "approved");
-  const rejectedList = applicants.filter((a) => a.status === "rejected");
+  const allApplicantsAcrossAllPosts = togethers.flatMap(
+    (t) => t.applicants || []
+  );
 
-  const tabCounts = {
+  const overallStats = {
+    total: allApplicantsAcrossAllPosts.length,
+    pending: allApplicantsAcrossAllPosts.filter((a) => a.status === "pending")
+      .length,
+    approved: allApplicantsAcrossAllPosts.filter((a) => a.status === "approved")
+      .length,
+    rejected: allApplicantsAcrossAllPosts.filter((a) => a.status === "rejected")
+      .length,
+  };
+
+  const targetTogether = togethers.find((t) => t.post_id === activePostId);
+  const currentApplicants = activePostId
+    ? targetTogether?.applicants || []
+    : allApplicantsAcrossAllPosts;
+
+  const targetHeadcount = targetTogether?.total_headcount || 0;
+
+  const pendingList = currentApplicants.filter((a) => a.status === "pending");
+  const approvedList = currentApplicants.filter((a) => a.status === "approved");
+  const rejectedList = currentApplicants.filter((a) => a.status === "rejected");
+
+  const currentTabCounts = {
     pending: pendingList.length,
     approved: approvedList.length,
     rejected: rejectedList.length,
@@ -311,59 +244,56 @@ export default function ResponseList() {
 
   const sortedActiveList = (() => {
     const list =
-      {
-        pending: pendingList,
-        approved: approvedList,
-        rejected: rejectedList,
-      }[activeTab] || [];
+      { pending: pendingList, approved: approvedList, rejected: rejectedList }[
+        activeTab
+      ] || [];
 
     return [...list].sort((a, b) => {
-      if (sortBy === "oldest") {
-        return (a.applied_at?.seconds || 0) - (b.applied_at?.seconds || 0);
-      }
-      if (sortBy === "wait") {
-        return (b.wait_time || 0) - (a.wait_time || 0);
-      }
-      // newest (default)
-      return (b.applied_at?.seconds || 0) - (a.applied_at?.seconds || 0);
+      const toSec = (v) =>
+        v?.seconds ?? (v?.toDate ? v.toDate().getTime() / 1000 : 0);
+
+      if (sortBy === "oldest") return toSec(a.applied_at) - toSec(b.applied_at);
+      if (sortBy === "wait") return (b.wait_time || 0) - (a.wait_time || 0);
+      return toSec(b.applied_at) - toSec(a.applied_at);
     });
   })();
 
-  // TODO: activePostId에 따라 togethers에서 해당 항목을 찾아 title 등 표시할 수 있도록 보완
-  const targetTogether = togethers?.find((t) => t.post_id === activePostId);
-  const targetHeadcount = targetTogether?.total_headcount || 0;
+  const loadAllData = useCallback(async () => {
+    if (!uid) return;
+    setTogethersLoading(true);
+    setError(null);
+    try {
+      const list = await getMyTogethers(uid);
+      setTogethers(list);
+    } catch (err) {
+      console.error("loadAllData error:", err);
+      setError("데이터를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setTogethersLoading(false);
+    }
+  }, [uid]);
 
   useEffect(() => {
-    if (!activePostId) return;
-    fetchMockData();
-  }, [activePostId]);
-
-  const fetchMockData = async () => {
-    setLoading(true);
-    try {
-      // 0.5초 대기 후 목업 주입
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      setTogethers(MOCK_TOGETHERS);
-      setApplicants(MOCK_APPLICANTS);
-    } catch (error) {
-      console.error("ResponseList fetch error:", error);
-    } finally {
-      setLoading(false);
+    if (user) {
+      loadAllData();
     }
-  };
+  }, [user, loadAllData]);
 
   const handleApprove = async (applicantId) => {
     setActionLoading(applicantId);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300)); // 딜레이 체감용
-      setApplicants((prev) =>
-        prev.map((a) =>
-          a.id === applicantId ? { ...a, status: "approved" } : a
-        )
+      await approveApplication(applicantId);
+      setTogethers((prev) =>
+        prev.map((t) => ({
+          ...t,
+          applicants: t.applicants.map((a) =>
+            a.id === applicantId ? { ...a, status: "approved" } : a
+          ),
+        }))
       );
-    } catch (error) {
-      console.error("Approve error:", error);
+    } catch (err) {
+      console.error("approveApplication error:", err);
+      alert("승인 처리 중 오류가 발생했습니다.");
     } finally {
       setActionLoading(null);
     }
@@ -372,23 +302,97 @@ export default function ResponseList() {
   const handleReject = async (applicantId) => {
     setActionLoading(applicantId);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300)); // 딜레이 체감용
-      setApplicants((prev) =>
-        prev.map((a) =>
-          a.id === applicantId ? { ...a, status: "rejected" } : a
-        )
+      await rejectApplication(applicantId);
+      setTogethers((prev) =>
+        prev.map((t) => ({
+          ...t,
+          applicants: t.applicants.map((a) =>
+            a.id === applicantId ? { ...a, status: "rejected" } : a
+          ),
+        }))
       );
-    } catch (error) {
-      console.error("Reject error:", error);
+    } catch (err) {
+      console.error("rejectApplication error:", err);
+      alert("반려 처리 중 오류가 발생했습니다.");
     } finally {
       setActionLoading(null);
     }
   };
 
-  if (loading) {
+  const handleSelectPost = (postId) => {
+    if (postId === activePostId) return;
+    setActivePostId(postId);
+  };
+
+  if (togethersLoading && togethers.length === 0) {
     return (
       <div className="responses-page">
-        <div className="responses-page__loading">불러오는 중(Mock)...</div>
+        <div className="responses-page__container">
+          <aside className="responses-page__sidebar">
+            <div className="responses-page__sidebar-header">
+              <h1 className="responses-page__sidebar-title">신청 관리</h1>
+              <p className="responses-page__sidebar-subtitle">불러오는 중...</p>
+            </div>
+          </aside>
+          <main
+            className="responses-page__main"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div className="responses-page__loading">데이터 로딩 중...</div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && togethers.length === 0) {
+    return (
+      <div className="responses-page">
+        <div className="responses-page__container">
+          <aside className="responses-page__sidebar">
+            <div className="responses-page__sidebar-header">
+              <h1 className="responses-page__sidebar-title">신청 관리</h1>
+            </div>
+          </aside>
+          <main className="responses-page__main">
+            <div className="responses-page__error">
+              <p>{error}</p>
+              <button onClick={() => loadAllData()}>다시 시도</button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (!togethersLoading && togethers.length === 0) {
+    return (
+      <div className="responses-page">
+        <div className="responses-page__container">
+          <aside className="responses-page__sidebar">
+            <div className="responses-page__sidebar-header">
+              <h1 className="responses-page__sidebar-title">신청 관리</h1>
+              <p className="responses-page__sidebar-subtitle">
+                신청자를 관리해보세요.
+              </p>
+            </div>
+          </aside>
+          <main className="responses-page__main">
+            <div className="responses-page__page-header">
+              아직 생성한 프로젝트가 없습니다.
+            </div>
+            <button
+              className="primary-button"
+              onClick={() => navigate("/togethers/write")}
+            >
+              + Create New Post
+            </button>
+          </main>
+        </div>
       </div>
     );
   }
@@ -396,7 +400,6 @@ export default function ResponseList() {
   return (
     <div className="responses-page">
       <div className="responses-page__container">
-        {/* ── 사이드바 ── */}
         <aside className="responses-page__sidebar">
           <div className="responses-page__sidebar-header">
             <h1 className="responses-page__sidebar-title">신청 관리</h1>
@@ -405,24 +408,36 @@ export default function ResponseList() {
             </p>
           </div>
 
-          {/* TODO: togethers의 항목이 nav-item으로 오도록 수정 */}
           <nav className="responses-page__sidebar-nav">
-            {togethers?.map((t) => (
-              <button
-                key={t.post_id}
-                className={`responses-page__nav-item${activePostId === t.post_id ? " responses-page__nav-item--active" : ""}`}
-                onClick={() => {
-                  setActivePostId(t.post_id);
-                }}
-              >
-                <span className="responses-page__nav-icon">👥</span>
-                {t.title}
-              </button>
-            ))}
+            <button
+              className={`responses-page__nav-item${activePostId === null ? " responses-page__nav-item--active" : ""}`}
+              onClick={() => setActivePostId(null)}
+            >
+              <span className="responses-page__nav-icon">📁</span> 전체 신청자
+              보기
+            </button>
+            {togethers.map((t) => {
+              const pendingCount =
+                t.applicants?.filter((a) => a.status === "pending").length || 0;
+
+              return (
+                <button
+                  key={t.post_id}
+                  className={`responses-page__nav-item${activePostId === t.post_id ? " responses-page__nav-item--active" : ""}`}
+                  onClick={() => handleSelectPost(t.post_id)}
+                >
+                  <span className="responses-page__nav-icon">📄</span> {t.title}
+                  {pendingCount > 0 && (
+                    <span className="responses-page__stat-badge responses-page__stat-badge--action">
+                      {pendingCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </aside>
 
-        {/* ── 메인 콘텐츠 ── */}
         <main className="responses-page__main">
           <div className="responses-page__page-header">
             <p className="responses-page__breadcrumb">
@@ -441,31 +456,27 @@ export default function ResponseList() {
             </h2>
           </div>
 
-          {/* 통계 카드 */}
           <div className="responses-page__stat-grid">
-            <StatCard
-              label="전체 신청자"
-              value={totalCount}
-              badge={totalCount > 0 ? { type: "growth", text: "+12%" } : null}
-            />
+            <StatCard label="전체 신청자" value={overallStats.total} />
             <StatCard
               label="대기중"
-              value={tabCounts.pending}
+              value={overallStats.pending}
               badge={
-                tabCounts.pending > 0
+                overallStats.pending > 0
                   ? { type: "action", text: "피드백 필요" }
                   : null
               }
             />
+            <StatCard label="승인" value={overallStats.approved} />
             <StatCard
-              label="승인"
-              value={tabCounts.approved}
-              sub={`Target: ${targetHeadcount}`}
+              label={
+                activePostId ? "선택된 프로젝트 승인" : "전체 프로젝트 승인"
+              }
+              value={currentTabCounts.approved}
+              sub={activePostId ? `목표: ${targetHeadcount}명` : null}
             />
-            <StatCard label="반려" value={tabCounts.rejected} />
           </div>
 
-          {/* 탭 + 필터/정렬 */}
           <div className="responses-page__tab-bar">
             <div className="responses-page__tabs">
               {TAB_OPTIONS.map((tab) => (
@@ -474,7 +485,7 @@ export default function ResponseList() {
                   className={`responses-page__tab${activeTab === tab.value ? " responses-page__tab--active" : ""}`}
                   onClick={() => setActiveTab(tab.value)}
                 >
-                  {tab.label} ({tabCounts[tab.value]})
+                  {tab.label} ({currentTabCounts[tab.value]})
                 </button>
               ))}
             </div>
@@ -487,7 +498,7 @@ export default function ResponseList() {
                 >
                   ≡{" "}
                   {SORT_OPTIONS.find((s) => s.value === sortBy)?.label ||
-                    "Newest"}
+                    "최신순"}
                 </button>
                 {isSortOpen && (
                   <div className="responses-page__sort-dropdown">
@@ -509,13 +520,12 @@ export default function ResponseList() {
             </div>
           </div>
 
-          {/* 신청자 카드 목록 */}
           <div className="responses-page__applicant-list">
             {sortedActiveList.length === 0 ? (
               <div className="responses-page__empty">
-                {activeTab === "pending" && "아직 신청자가 없습니다."}
+                {activeTab === "pending" && "아직 대기 중인 신청자가 없습니다."}
                 {activeTab === "approved" && "승인된 신청자가 없습니다."}
-                {activeTab === "rejected" && "거절된 신청자가 없습니다."}
+                {activeTab === "rejected" && "반려된 신청자가 없습니다."}
               </div>
             ) : (
               sortedActiveList.map((applicant) => (
@@ -529,15 +539,6 @@ export default function ResponseList() {
               ))
             )}
           </div>
-
-          {/* 더보기 */}
-          {sortedActiveList.length > 0 && (
-            <div className="responses-page__load-more-wrapper">
-              <button className="responses-page__load-more-button">
-                Load More Applicants ∨
-              </button>
-            </div>
-          )}
         </main>
       </div>
     </div>

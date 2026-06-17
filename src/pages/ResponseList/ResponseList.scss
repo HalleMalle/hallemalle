@@ -7,16 +7,7 @@ $color-nav-active-bg: #f0f0f0;
 .responses-page {
   min-height: 100vh;
   background: $white;
-  padding: 48px 0 80px;
-
-  &__loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 60vh;
-    font-size: 15px;
-    color: $text-secondary;
-  }
+  padding: 32px 0 80px;
 
   &__container {
     display: flex;

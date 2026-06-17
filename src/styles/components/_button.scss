@@ -1,3 +1,24 @@
-.link-button {}
+@use "@/styles/variables" as *;
 
-.circle-button {}
+@mixin primary-base {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 22px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #333;
+  }
+}
+
+.primary-button {
+  @include primary-base;
+}

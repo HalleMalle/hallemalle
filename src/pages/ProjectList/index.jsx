@@ -203,7 +203,7 @@ export default function ProjectList() {
             </p>
           </div>
           <button
-            className="project-list-page-create-btn"
+            className="primary-button"
             onClick={() => navigate("/togethers/write")}
           >
             + Create New Post

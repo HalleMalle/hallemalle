@@ -1,4 +1,482 @@
 @use "@/styles/main" as *;
 
-.request-list-page {
+$color-sidebar-hover: #f3f4f6;
+$color-cancel-border: #d1d5db;
+$color-nav-active-bg: #f0f0f0;
+
+.requests-page {
+  min-height: 100vh;
+  background: $white;
+  padding: 32px 0 80px;
+
+  &__container {
+    display: flex;
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+    padding: 40px 40px 80px;
+
+    @media (max-width: 860px) {
+      padding: 24px 20px 60px;
+    }
+  }
+
+  &__sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    border-right: 1px solid $gray-200;
+    padding: 40px 20px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    @media (max-width: 860px) {
+      display: none;
+    }
+  }
+
+  &__sidebar-header {
+    margin-bottom: 24px;
+  }
+
+  &__sidebar-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: $text-primary;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  &__sidebar-subtitle {
+    font-size: 13px;
+    color: $text-muted;
+  }
+
+  &__sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__nav-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-secondary;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      color 0.15s;
+
+    &:hover {
+      background: $color-sidebar-hover;
+      color: $text-primary;
+    }
+
+    &--active {
+      background: $color-nav-active-bg;
+      color: $primary;
+      font-weight: 700;
+    }
+  }
+
+  &__nav-icon {
+    margin-right: 8px;
+    font-size: 16px;
+  }
+
+  &__page-header {
+    margin-bottom: 32px;
+  }
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: $text-muted;
+    margin-bottom: 8px;
+  }
+
+  &__breadcrumb-separator {
+    color: $gray-400;
+  }
+
+  &__page-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: $text-primary;
+    letter-spacing: -0.5px;
+  }
+
+  &__stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 36px;
+
+    @media (max-width: 640px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__stat-card {
+    background: $gray-50;
+    border: 1px solid $gray-100;
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+
+  &__stat-label {
+    font-size: 13px;
+    color: $text-muted;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  &__stat-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: $text-primary;
+  }
+
+  &__stat-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 6px;
+
+    &--action {
+      background: #fef2f2;
+      color: $danger;
+    }
+  }
+
+  &__stat-sub {
+    font-size: 12px;
+    color: $text-muted;
+  }
+
+  &__tab-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid $gray-200;
+    margin-bottom: 24px;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 24px;
+  }
+
+  &__tab {
+    background: transparent;
+    border: none;
+    padding: 12px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: $text-muted;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.15s;
+
+    &:hover {
+      color: $text-primary;
+    }
+
+    &--active {
+      color: $primary;
+      font-weight: 700;
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: $primary;
+      }
+    }
+  }
+
+  &__tab-actions {
+    display: flex;
+    align-items: center;
+  }
+
+  &__sort-wrapper {
+    position: relative;
+  }
+
+  &__sort-button {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    color: $text-secondary;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+
+    &:hover {
+      background: $gray-50;
+    }
+  }
+
+  &__sort-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+    width: 110px;
+    padding: 4px;
+  }
+
+  &__sort-option {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: $text-secondary;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+
+    &:hover {
+      background: $gray-50;
+      color: $text-primary;
+    }
+
+    &--active {
+      color: $primary;
+      font-weight: 600;
+      background: #f5f3ff;
+    }
+  }
+
+  &__applicant-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 60px 0;
+    font-size: 14px;
+    color: $text-muted;
+    border: 1px dashed $gray-200;
+    border-radius: 12px;
+  }
+
+  &__applicant-card {
+    display: flex;
+    gap: 20px;
+    border: 1px solid $gray-200;
+    border-radius: 12px;
+    padding: 24px;
+    background: $white;
+    transition: box-shadow 0.15s;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+  }
+
+  &__applicant-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: $gray-100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__applicant-avatar-initial {
+    font-size: 16px;
+    font-weight: 700;
+    color: $text-secondary;
+  }
+
+  &__applicant-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__applicant-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  &__applicant-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  &__applicant-wait-badge {
+    font-size: 11px;
+    background: #fffbeb;
+    color: #d97706;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  &__applicant-role-time {
+    font-size: 13px;
+    color: $text-muted;
+    margin-bottom: 12px;
+  }
+
+  &__applicant-message {
+    font-size: 14px;
+    color: $text-secondary;
+    line-height: 1.5;
+    background: $gray-50;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+  }
+
+  &__applicant-attachments {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  &__attachment-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-secondary;
+    text-decoration: none;
+
+    &:hover {
+      border-color: $gray-400;
+      color: $text-primary;
+    }
+  }
+
+  &__attachment-icon {
+    font-size: 13px;
+  }
+
+  &__applicant-detail-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    color: $text-muted;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+      color: $primary;
+      text-decoration: underline;
+    }
+  }
+
+  &__applicant-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  &__action-button {
+    width: 100px;
+    height: 38px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      border-color 0.15s,
+      opacity 0.15s;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--cancel {
+      background: $white;
+      color: $danger;
+      border: 1px solid $color-cancel-border;
+
+      &:hover:not(:disabled) {
+        border-color: $danger;
+        background: #fef2f2;
+      }
+    }
+  }
+
+  &__status-label {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    text-align: center;
+
+    &--approved {
+      color: $success;
+      background: #f0fdf4;
+    }
+
+    &--rejected {
+      color: $gray-500;
+      background: $gray-50;
+    }
+  }
+
+  &__loading,
+  &__error {
+    text-align: center;
+    font-size: 14px;
+    color: $text-secondary;
+    padding: 40px;
+  }
 }
