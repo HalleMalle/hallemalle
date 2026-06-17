@@ -4,6 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getProjectDetail } from "@/api/project";
 import { useAuth } from "@/contexts/AuthContext";
 
+import ApplyModal from "@/components/ApplyModal";
+
 import CalendarIcon from "@/assets/icons/calendar.svg";
 import PencilIcon from "@/assets/icons/pencil.svg";
 import DocumentIcon from "@/assets/icons/document.svg";
@@ -59,6 +61,7 @@ export default function ProjectDetail() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
   // 1) 로그인 유저 상태 관찰
@@ -120,7 +123,16 @@ export default function ProjectDetail() {
       alert("본인이 작성한 공고에는 신청할 수 없습니다.");
       return;
     }
-    alert("신청 기능은 준비 중입니다.");
+    setIsApplyModalOpen(true);
+  };
+
+  const handleApplySuccess = async () => {
+    try {
+      const refreshed = await getProjectDetail(id);
+      setProject(refreshed);
+    } catch {
+      // 갱신 실패는 무시 (다음 페이지 진입 시 최신화됨)
+    }
   };
 
   const handleEdit = () => {
@@ -406,16 +418,18 @@ export default function ProjectDetail() {
               </div>
 
               <div className="project-detail-page-sidebar-actions">
-                <button
-                  className="project-detail-page-action-btn project-detail-page-action-btn--primary"
-                  onClick={handleApply}
-                  disabled={project.recruitment_status === "closed"}
-                >
-                  <img src={HandIcon} alt="hand" width={16} height={16} />{" "}
-                  {project.recruitment_status === "closed"
-                    ? "모집 마감됨"
-                    : "팀원 신청하기"}
-                </button>
+                {!isOwner && (
+                  <button
+                    className="project-detail-page-action-btn project-detail-page-action-btn--primary"
+                    onClick={handleApply}
+                    disabled={project.recruitment_status === "closed"}
+                  >
+                    <img src={HandIcon} alt="hand" width={16} height={16} />{" "}
+                    {project.recruitment_status === "closed"
+                      ? "모집 마감됨"
+                      : "팀원 신청하기"}
+                  </button>
+                )}
                 {isOwner && (
                   <button
                     className="project-detail-page-action-btn project-detail-page-action-btn--outline"
@@ -440,6 +454,16 @@ export default function ProjectDetail() {
           </aside>
         </div>
       </div>
+      {currentUser && !isOwner && (
+        <ApplyModal
+          postId={project.post_id}
+          roles={project.roles}
+          uid={currentUser.uid}
+          isOpen={isApplyModalOpen}
+          onClose={() => setIsApplyModalOpen(false)}
+          onSuccess={handleApplySuccess}
+        />
+      )}
     </div>
   );
 }
