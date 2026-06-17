@@ -315,7 +315,7 @@ export async function updateProject(postId, formData) {
 }
 
 /**
- * 3. 프로젝트 상세 조회
+ * 3. 프로젝트 상세 조회 (작성자 유저 프로필 정보 포함)
  */
 export async function getProjectDetail(postId) {
   const docRef = doc(db, TOGETHERS_COL, postId);
@@ -327,6 +327,29 @@ export async function getProjectDetail(postId) {
 
   const pData = docSnap.data();
 
+  // 작성자 유저 정보(users 컬렉션) 단건 비동기 조회
+  let creatorInfo = null;
+  if (pData.created_by) {
+    try {
+      const userSnap = await getDoc(doc(db, "users", pData.created_by));
+      if (userSnap.exists()) {
+        const uData = userSnap.data();
+        creatorInfo = {
+          uid: pData.created_by,
+          github_login: uData.github_login || "",
+          display_name: uData.display_name || "",
+          photo_url: uData.photo_url || "",
+          tier: uData.tier || "bronze",
+          tier_detail: uData.tier_detail || 1,
+          collaboration_score: uData.collaboration_score || 10,
+        };
+      }
+    } catch (err) {
+      console.warn("작성자 정보 로드 실패:", err.message);
+    }
+  }
+
+  // (하위 컬렉션 조회부 - 기존과 동일)
   const rolesSnap = await getDocs(
     query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
   );
@@ -339,11 +362,7 @@ export async function getProjectDetail(postId) {
 
   const mappedRoles = rolesSnap.docs.map((r) => {
     const d = r.data();
-    return {
-      role: d.role_type,
-      total: d.headcount,
-      current: d.filled_count,
-    };
+    return { role: d.role_type, total: d.headcount, current: d.filled_count };
   });
 
   const attachmentsData = docsSnap.docs.map((docUuid) => {
@@ -351,7 +370,7 @@ export async function getProjectDetail(postId) {
     return {
       name: d.file_name,
       url: d.file_url,
-      visibility: d.visibility,
+      visibility: d.visibility || "public",
     };
   });
 
@@ -371,11 +390,12 @@ export async function getProjectDetail(postId) {
     roles: mappedRoles,
     techStack: techSnap.docs.map((t) => t.data().tag),
     attachments: attachmentsData,
-    attachmentVisibility:
-      attachmentsData[0]?.visibility === "public" ? "public" : "approved",
+    attachmentVisibility: "public",
+
+    // 화면단에 넘겨줄 작성자 오브젝트 추가
+    creator: creatorInfo,
   };
 }
-
 /**
  * 4. 프로젝트 목록 전체 조회
  */

@@ -174,25 +174,25 @@ export default function ProjectDetail() {
 
             <div className="project-detail-page-creator">
               <div className="project-detail-page-creator__avatar">
-                {currentUser && currentUser.photo_url ? (
+                {project?.creator && project.creator.photo_url ? (
                   <img
-                    src={currentUser.photo_url}
-                    alt={currentUser.display_name}
+                    src={project.creator.photo_url}
+                    alt={project.creator.display_name}
                   />
                 ) : (
                   <span className="project-detail-page-creator__avatar-placeholder">
-                    {currentUser?.display_name
-                      ? currentUser?.display_name[0]
+                    {project?.creator?.display_name
+                      ? project.creator.display_name[0]
                       : "U"}
                   </span>
                 )}
               </div>
               <div className="project-detail-page-creator__info">
                 <span className="project-detail-page-creator__name">
-                  {currentUser && currentUser.display_name}
+                  {project?.creator && project.creator.display_name}
                 </span>
                 <span className="project-detail-page-creator__temp">
-                  조회수 {project.view_count || 0}회
+                  조회수 {project?.view_count || 0}회
                 </span>
               </div>
             </div>
