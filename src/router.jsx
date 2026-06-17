@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Layout from "@/components/layout/Layout";
 
@@ -67,9 +69,9 @@ export default function AppRouter() {
               <Route
                 path="/togethers/:id/edit"
                 element={
-                  // <ProtectedRoute>
-                  <ProjectEdit />
-                  // </ProtectedRoute>
+                  <ProtectedRoute>
+                    <ProjectEdit />
+                  </ProtectedRoute>
                 }
               />
               <Route
@@ -99,17 +101,17 @@ export default function AppRouter() {
               <Route
                 path="/profile/responses"
                 element={
-                  // <ProtectedRoute>
-                  <ResponseList />
-                  // </ProtectedRoute>
+                  <ProtectedRoute>
+                    <ResponseList />
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/profile/requests"
                 element={
-                  // <ProtectedRoute>
-                  <RequestList />
-                  // </ProtectedRoute>
+                  <ProtectedRoute>
+                    <RequestList />
+                  </ProtectedRoute>
                 }
               />
               <Route
