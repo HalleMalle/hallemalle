@@ -1,4 +1,78 @@
-@use "@/styles/variables" as *;
+@use "@/styles/main" as *;
 
 .retrospective-list-page {
+  padding: $spacing-2xl 0 $spacing-3xl;
+}
+
+.retrospective-list-header {
+  margin-bottom: $spacing-xl;
+}
+
+.retrospective-list-eyebrow {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.retrospective-list-title {
+  margin-top: $spacing-xs;
+  font-size: $font-size-2xl;
+  line-height: $line-height-tight;
+}
+
+.retrospective-list-subtitle {
+  margin-top: $spacing-sm;
+  max-width: 42rem;
+  color: $text-secondary;
+  line-height: $line-height-normal;
+}
+
+.retrospective-list-status {
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  color: $text-secondary;
+  text-align: center;
+}
+
+.retrospective-list-status-error {
+  border-color: $danger-light;
+  background: $danger-light;
+  color: $danger;
+}
+
+.retrospective-list-empty {
+  @include flex-col-center;
+
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px dashed $gray-300;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  text-align: center;
+}
+
+.retrospective-list-empty-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.retrospective-list-empty-description {
+  margin-top: $spacing-xs;
+  color: $text-secondary;
+}
+
+.retrospective-list-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-lg;
+
+  @include tablet-up {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include desktop {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }

@@ -1,0 +1,40 @@
+@use "@/styles/main" as *;
+
+.retrospective-card {
+  @include card-hover;
+  @include flex-column;
+
+  height: 100%;
+  padding: $spacing-lg;
+  gap: $spacing-sm;
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.retrospective-card-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  word-break: break-word;
+}
+
+.retrospective-card-excerpt {
+  @include text-clamp(3);
+
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+  white-space: pre-line;
+}
+
+.retrospective-card-meta {
+  margin-top: auto;
+  padding-top: $spacing-sm;
+  color: $text-muted;
+  font-size: $font-size-xs;
+}
