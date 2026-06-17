@@ -22,6 +22,7 @@ import MyProjects from "@/pages/MyProjects";
 import RetrospectiveList from "@/pages/RetrospectiveList";
 import RetrospectiveWrite from "@/pages/RetrospectiveWrite";
 import RetrospectiveDetail from "@/pages/RetrospectiveDetail";
+import RetrospectiveEdit from "@/pages/RetrospectiveEdit";
 import ReviewWrite from "@/pages/ReviewWrite";
 
 export default function AppRouter() {
@@ -147,6 +148,14 @@ export default function AppRouter() {
                 element={
                   <ProtectedRoute>
                     <RetrospectiveDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/memoirs/:memoirId/edit"
+                element={
+                  <ProtectedRoute>
+                    <RetrospectiveEdit />
                   </ProtectedRoute>
                 }
               />

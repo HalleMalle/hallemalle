@@ -1,0 +1,40 @@
+@use "@/styles/main" as *;
+
+.retrospective-edit-page {
+  padding: $spacing-2xl 0 $spacing-3xl;
+}
+
+.retrospective-edit-header {
+  margin-bottom: $spacing-xl;
+}
+
+.retrospective-edit-back {
+  display: inline-block;
+  margin-bottom: $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.retrospective-edit-title {
+  font-size: $font-size-2xl;
+  line-height: $line-height-tight;
+}
+
+.retrospective-edit-status {
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  color: $text-secondary;
+  text-align: center;
+}
+
+.retrospective-edit-status-error {
+  border-color: $danger-light;
+  background: $danger-light;
+  color: $danger;
+}
