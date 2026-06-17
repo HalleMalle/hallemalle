@@ -256,15 +256,15 @@ export default function ApplyModal({
                 ].join(" ")}
               >
                 {existingApplication.status === "approved"
-                  ? "🎉 신청이 승인되었습니다! 프로젝트 리더의 연락을 기다려주세요."
-                  : "신청이 반려되었습니다. 다른 프로젝트를 찾아보세요."}
+                  ? "🎉 신청 승인되었습니다! 프로젝트 리더의 연락을 기다려주세요."
+                  : "신청 반려되었습니다. 다른 프로젝트를 찾아보세요."}
               </div>
             )}
 
             {/* 검토 중 안내 */}
             {isPending && (
               <div className="apply-modal__notice apply-modal__notice--pending">
-                ⏳ 현재 신청이 검토 중입니다. 결과를 기다려주세요.
+                ⏳ 신청서 검토 중입니다. 결과를 기다려주세요.
               </div>
             )}
 
