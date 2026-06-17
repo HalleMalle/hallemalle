@@ -1,0 +1,105 @@
+@use "@/styles/main" as *;
+
+.retrospective-form {
+  @include flex-column;
+
+  gap: $spacing-lg;
+  max-width: 48rem;
+}
+
+.retrospective-form-field {
+  @include flex-column;
+
+  gap: $spacing-xs;
+
+  label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    background: $bg-primary;
+    color: $text-primary;
+    font-family: inherit;
+    font-size: $font-size-sm;
+    line-height: $line-height-normal;
+
+    &:focus-visible {
+      outline: 2px solid $primary;
+      outline-offset: 1px;
+    }
+
+    &:disabled {
+      background: $bg-secondary;
+      color: $text-muted;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+  }
+}
+
+.retrospective-form-count {
+  align-self: flex-end;
+  color: $text-muted;
+  font-size: $font-size-xs;
+}
+
+.retrospective-form-error {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background: $danger-light;
+  color: $danger;
+  font-size: $font-size-sm;
+}
+
+.retrospective-form-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.retrospective-form-submit {
+  @include button-base;
+
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.retrospective-form-cancel {
+  @include button-base;
+
+  padding: $spacing-sm $spacing-lg;
+  border: 1px solid $gray-300;
+  border-radius: $radius-full;
+  background: $bg-primary;
+  color: $text-secondary;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}

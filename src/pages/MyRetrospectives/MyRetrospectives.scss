@@ -1,50 +1,44 @@
 @use "@/styles/main" as *;
 
-.retrospective-list-page {
+.my-retrospective-page {
   padding: $spacing-2xl 0 $spacing-3xl;
 }
 
-.retrospective-list-header {
+.my-retrospective-header {
   margin-bottom: $spacing-xl;
 }
 
-.retrospective-list-eyebrow {
+.my-retrospective-back {
+  display: inline-block;
+  margin-bottom: $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.my-retrospective-eyebrow {
   color: $text-secondary;
   font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
 }
 
-.retrospective-list-title {
+.my-retrospective-title {
   margin-top: $spacing-xs;
   font-size: $font-size-2xl;
   line-height: $line-height-tight;
 }
 
-.retrospective-list-subtitle {
+.my-retrospective-subtitle {
   margin-top: $spacing-sm;
   max-width: 42rem;
   color: $text-secondary;
   line-height: $line-height-normal;
 }
 
-.retrospective-list-add {
-  @include button-base;
-
-  display: inline-block;
-  margin-top: $spacing-md;
-  padding: $spacing-sm $spacing-lg;
-  border-radius: $radius-full;
-  background: $primary;
-  color: $text-inverse;
-  font-weight: $font-weight-semibold;
-
-  &:focus-visible {
-    outline: 2px solid $primary;
-    outline-offset: 2px;
-  }
-}
-
-.retrospective-list-status {
+.my-retrospective-status {
   padding: $spacing-3xl $spacing-lg;
   border: 1px solid $gray-200;
   border-radius: $radius-lg;
@@ -53,13 +47,13 @@
   text-align: center;
 }
 
-.retrospective-list-status-error {
+.my-retrospective-status-error {
   border-color: $danger-light;
   background: $danger-light;
   color: $danger;
 }
 
-.retrospective-list-empty {
+.my-retrospective-empty {
   @include flex-col-center;
 
   padding: $spacing-3xl $spacing-lg;
@@ -69,18 +63,38 @@
   text-align: center;
 }
 
-.retrospective-list-empty-title {
+.my-retrospective-empty-title {
   font-size: $font-size-lg;
   font-weight: $font-weight-semibold;
   color: $text-primary;
 }
 
-.retrospective-list-empty-description {
+.my-retrospective-empty-description {
   margin-top: $spacing-xs;
   color: $text-secondary;
 }
 
-.retrospective-list-grid {
+.my-retrospective-empty-link {
+  margin-top: $spacing-lg;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.my-retrospective-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: $spacing-lg;

@@ -20,6 +20,10 @@ import RequestList from "@/pages/RequestList";
 import ResponseList from "@/pages/ResponseList";
 import MyProjects from "@/pages/MyProjects";
 import RetrospectiveList from "@/pages/RetrospectiveList";
+import RetrospectiveWrite from "@/pages/RetrospectiveWrite";
+import RetrospectiveDetail from "@/pages/RetrospectiveDetail";
+import RetrospectiveEdit from "@/pages/RetrospectiveEdit";
+import MyRetrospectives from "@/pages/MyRetrospectives";
 import ReviewWrite from "@/pages/ReviewWrite";
 
 export default function AppRouter() {
@@ -129,6 +133,38 @@ export default function AppRouter() {
                 element={
                   <ProtectedRoute>
                     <MyScrappedReferences />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/memoirs/my-article"
+                element={
+                  <ProtectedRoute>
+                    <MyRetrospectives />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/memoirs/write"
+                element={
+                  <ProtectedRoute>
+                    <RetrospectiveWrite />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/memoirs/:memoirId"
+                element={
+                  <ProtectedRoute>
+                    <RetrospectiveDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/memoirs/:memoirId/edit"
+                element={
+                  <ProtectedRoute>
+                    <RetrospectiveEdit />
                   </ProtectedRoute>
                 }
               />

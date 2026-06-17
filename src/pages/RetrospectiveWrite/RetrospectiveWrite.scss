@@ -1,0 +1,25 @@
+@use "@/styles/main" as *;
+
+.retrospective-write-page {
+  padding: $spacing-2xl 0 $spacing-3xl;
+}
+
+.retrospective-write-header {
+  margin-bottom: $spacing-xl;
+}
+
+.retrospective-write-back {
+  display: inline-block;
+  margin-bottom: $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.retrospective-write-title {
+  font-size: $font-size-2xl;
+  line-height: $line-height-tight;
+}
