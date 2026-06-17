@@ -161,6 +161,10 @@ $color-tip-bg: #eff6ff;
     border-radius: 12px;
     background: $white;
 
+    &:last-child {
+      grid-column: span 2;
+    }
+
     &__icon {
       font-size: 18px;
       flex-shrink: 0;

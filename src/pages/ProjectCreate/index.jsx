@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 
-// import { createProject } from "@/api/project";
+import { createProject } from "@/api/project";
+import { useAuth } from "@/contexts/AuthContext";
 
 import ProjectForm from "@/components/ProjectForm";
 
@@ -11,20 +12,21 @@ export default function ProjectCreate() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const [error, setError] = useState(null);
+
   const handleSubmit = async (data) => {
     if (!user) return;
+    setError(null);
 
-    const projectData = {
-      ...data,
-      creatorId: user.uid,
-      creatorName: user.displayName || user.username,
-      creatorPhoto: user.photoURL,
-    };
+    try {
+      const newPostId = await createProject(data, user?.uid);
 
-    // const result = await createProject(projectData);
-
-    if (result?.id) {
-      navigate(`/project-list/${result.id}`);
+      if (newPostId) {
+        navigate(`/togethers/${newPostId}`);
+      }
+    } catch (err) {
+      console.error("ProjectCreate submit error:", err);
+      setError("프로젝트 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -55,10 +57,11 @@ export default function ProjectCreate() {
 
         {/* 메인 폼 영역 */}
         <main className="project-create-page-main">
+          {error && <div className="project-create-page-error">{error}</div>}
           <ProjectForm
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-            submitLabel="Next Step"
+            submitLabel="프로젝트 등록"
           />
         </main>
       </div>

@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
+import { getProjectDetail } from "@/api/project";
+import { useAuth } from "@/contexts/AuthContext";
 
 import CalendarIcon from "@/assets/icons/calendar.svg";
 import PencilIcon from "@/assets/icons/pencil.svg";
@@ -12,50 +15,18 @@ import InfoIcon from "@/assets/icons/info.svg";
 import "./ProjectDetail.scss";
 
 const ROLE_LABELS = {
-  FE: "프론트엔드",
-  BE: "백엔드",
-  Design: "디자인",
-  Android: "안드로이드",
+  Frontend: "Frontend",
+  Backend: "Backend",
+  Android: "Android",
   iOS: "iOS",
-  PM: "기획/PM",
-  QA: "QA",
-  AI: "AI/ML",
+  Design: "Design",
+  "PM/PO": "PM/PO",
 };
 
-const MOCK_PROJECT = {
-  id: "1",
-  title: "차세대 AI 문서 분석 B2B SaaS 프론트엔드/백엔드 초기 멤버 모집",
-  status: "recruiting",
-  attachmentVisibility: "approved",
-  creator: {
-    name: "Alex.Dev",
-    photo: null,
-    temperature: 42.5,
-    temperatureLabel: "Gold I",
-  },
-  startDate: "2023.10.25",
-  endDate: "2023.11.15",
-  techStack: ["node.js", "react"],
-  stage: "planning",
-  description: `안녕하세요. 현재 AI 기반의 기업용 문서 분석 SaaS를 기획 및 초기 개발 중인 팀입니다. 기존 수작업에 의존하던 법률/계약 문서 검토 과정을 LLM을 활용해 혁신하고자 합니다.
-현재 기획은 80% 이상 완료되었으며, 주요 핵심 기능에 대한 PoC(개념 증명)는 마친 상태입니다. 본격적인 MVP 개발을 위해 열정적이고 책임감 있는 프론트엔드 및 백엔드 개발자 분들을 모십니다.
-
-주요 업무
-프론트엔드: React 기반의 복잡한 문서 뷰어 및 에디터 UI/UX 구현, 상태 관리 최적화
-백엔드: Node.js 기반 API 서버 구축, AI 모델 서빙 아키텍처 설계 참여, 대용량 문서 처리 파이프라인 구축
-
-이런 분을 찾습니다!
-
-주 2회 이상 온라인 회의 및 비동기 커뮤니케이션이 원활하신 분
-단순히 주어진 기획을 구현하는 것을 넘어, 프로덕트 방향성에 대해 함께 고민할 수 있는 분
-초기 스타트업 혹은 사이드 프로젝트 완수 경험이 있으신 분 우대`,
-  attachments: [
-    { name: "initial_scope_v1.pdf", size: 2.4, visibility: "approved" },
-  ],
-  positions: [
-    { role: "FE", total: 2, current: 1 },
-    { role: "BE", total: 1, current: 0 },
-  ],
+const STAGE_LABELS = {
+  plan: "기획부터",
+  dev: "개발부터",
+  maintain: "유지보수",
 };
 
 function PositionRow({ role, current, total }) {
@@ -82,25 +53,96 @@ function PositionRow({ role, current, total }) {
 
 export default function ProjectDetail() {
   const navigate = useNavigate();
-  const { id } = useParams(); // api 호출 시 사용 예정
+  const { id } = useParams();
+  const { user } = useAuth();
 
-  const [project] = useState(MOCK_PROJECT);
+  const [project, setProject] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const isOwner = true; // TODO: 실제 user.uid === project.creatorId 비교
-  const descLines = project.description.split("\n");
+  // 1) 로그인 유저 상태 관찰
+  useEffect(() => {
+    setCurrentUser(user);
+  }, [user]);
+
+  // 2) Firestore 단건 데이터 로드 (Tech Stack 포함)
+  useEffect(() => {
+    if (!id) return;
+
+    async function fetchProjectData() {
+      try {
+        setLoading(true);
+        // getProject 함수가 내부에 together_tech_stack 서브컬렉션을
+        // 가져와 project.techStack 배열로 맵핑해 반환하고 있습니다.
+        const data = await getProjectDetail(id);
+        setProject(data);
+      } catch (err) {
+        console.error("프로젝트 조회 에러:", err);
+        setError("프로젝트 정보를 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProjectData();
+  }, [id]);
+
+  if (loading) {
+    return <div className="project-detail-loading">데이터 로딩 중...</div>;
+  }
+
+  if (error || !project) {
+    return (
+      <div className="project-detail-error">
+        <p>{error || "존재하지 않는 프로젝트입니다."}</p>
+        <button
+          className="btn btn--primary"
+          onClick={() => navigate("/togethers")}
+        >
+          목록으로 돌아가기
+        </button>
+      </div>
+    );
+  }
+
+  const isOwner = currentUser && project.created_by === currentUser.uid;
+  const descLines = project.description ? project.description.split("\n") : [];
+  const stage =
+    STAGE_LABELS[project.participation_stage] || project.participation_stage;
 
   const handleApply = () => {
-    // TODO: 팀원 신청 API
+    if (!currentUser) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    if (isOwner) {
+      alert("본인이 작성한 공고에는 신청할 수 없습니다.");
+      return;
+    }
     alert("신청 기능은 준비 중입니다.");
   };
 
   const handleEdit = () => {
-    navigate(`/togethers/${project.id}/edit`);
+    navigate(`/togethers/${project.post_id}/edit`);
   };
 
-  const handleDownload = (attachment) => {
-    // TODO: 파일 다운로드 API
-    alert(`${attachment.name} 다운로드`);
+  const handleDownload = (doc) => {
+    if (doc.visibility === "approved_only" && !isOwner) {
+      alert("승인된 팀원만 열람 가능한 첨부파일입니다.");
+      return;
+    }
+
+    if (doc.url) {
+      const link = document.createElement("a");
+      link.href = doc.url;
+      link.download = doc.name || "download.pdf";
+      link.target = "_blank"; // 새 창 열기 효과가 필요한 경우
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
@@ -117,9 +159,11 @@ export default function ProjectDetail() {
           <main className="project-detail-page-main">
             <div className="project-detail-page-badges">
               <span className="project-detail-page-badge project-detail-page-badge--status">
-                모집중
+                {project.recruitment_status === "closed"
+                  ? "모집완료"
+                  : "모집중"}
               </span>
-              {project.attachmentVisibility === "approved" && (
+              {project.is_private && (
                 <span className="project-detail-page-badge project-detail-page-badge--lock">
                   🔒 승인자만 공개
                 </span>
@@ -130,21 +174,25 @@ export default function ProjectDetail() {
 
             <div className="project-detail-page-creator">
               <div className="project-detail-page-creator__avatar">
-                {project.creator.photo ? (
-                  <img src={project.creator.photo} alt={project.creator.name} />
+                {project?.creator && project.creator.photo_url ? (
+                  <img
+                    src={project.creator.photo_url}
+                    alt={project.creator.display_name}
+                  />
                 ) : (
                   <span className="project-detail-page-creator__avatar-placeholder">
-                    {project.creator.name[0]}
+                    {project?.creator?.display_name
+                      ? project.creator.display_name[0]
+                      : "U"}
                   </span>
                 )}
               </div>
               <div className="project-detail-page-creator__info">
                 <span className="project-detail-page-creator__name">
-                  {project.creator.name}
+                  {project?.creator && project.creator.display_name}
                 </span>
                 <span className="project-detail-page-creator__temp">
-                  🔥 협업 온도: {project.creator.temperature}°C (
-                  {project.creator.temperatureLabel})
+                  조회수 {project?.view_count || 0}회
                 </span>
               </div>
             </div>
@@ -166,10 +214,30 @@ export default function ProjectDetail() {
                     모집 기간
                   </p>
                   <p className="project-detail-page-meta-card__value">
-                    {project.startDate} ~ {project.endDate}
+                    {project.recruitment_start} ~ {project.recruitment_end}
                   </p>
                 </div>
               </div>
+
+              <div className="project-detail-page-meta-card">
+                <span className="project-detail-page-meta-card__icon">
+                  <img
+                    src={CalendarIcon}
+                    alt="calendar"
+                    width={16}
+                    height={16}
+                  />
+                </span>
+                <div>
+                  <p className="project-detail-page-meta-card__label">
+                    참여 단계
+                  </p>
+                  <p className="project-detail-page-meta-card__value">
+                    {stage}
+                  </p>
+                </div>
+              </div>
+
               <div className="project-detail-page-meta-card">
                 <span className="project-detail-page-meta-card__icon">
                   <img src={CodeIcon} alt="code" width={16} height={16} />
@@ -179,11 +247,21 @@ export default function ProjectDetail() {
                     필요 기술 스택
                   </p>
                   <div className="project-detail-page-tech-tags">
-                    {project.techStack.map((tech) => (
-                      <span key={tech} className="project-detail-page-tech-tag">
-                        {tech}
+                    {/* 💡 together_tech_stack 테이블 연동 바인딩 */}
+                    {project.techStack && project.techStack.length > 0 ? (
+                      project.techStack.map((tech) => (
+                        <span
+                          key={`stack--${tech}`}
+                          className="project-detail-page-tech-tag"
+                        >
+                          {tech}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="project-detail-page-tech-tag">
+                        등록된 스택 없음
                       </span>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
@@ -210,10 +288,38 @@ export default function ProjectDetail() {
               </div>
             </section>
 
-            {project.attachments?.length > 0 && (
+            {project?.thumbnail && (
               <section className="project-detail-page-section">
                 <h2 className="project-detail-page-section__title">
-                  📎 첨부 파일
+                  프로젝트 이미지
+                </h2>
+                <div className="project-detail-page-section__divider" />
+                <div className="project-detail-page-description">
+                  <img
+                    src={project.thumbnail}
+                    alt="Project Thumbnail"
+                    style={{ maxWidth: "100%", height: "auto" }}
+                  />
+                </div>
+              </section>
+            )}
+
+            {project.contact_value && (
+              <section className="project-detail-page-section">
+                <h2 className="project-detail-page-section__title">
+                  연락 수단
+                </h2>
+                <div className="project-detail-page-section__divider" />
+                <div className="project-detail-page-description">
+                  {project.contact_type}: {project.contact_value}
+                </div>
+              </section>
+            )}
+
+            {project.attachments && project.attachments.length > 0 && (
+              <section className="project-detail-page-section">
+                <h2 className="project-detail-page-section__title">
+                  📎 첨부 파일 ({project.attachments.length}개)
                 </h2>
                 <div className="project-detail-page-attachments">
                   {project.attachments.map((att) => (
@@ -233,9 +339,17 @@ export default function ProjectDetail() {
                         <span className="project-detail-page-attachment__name">
                           {att.name}
                         </span>
-                        <span className="project-detail-page-attachment__size">
-                          {att.size} MB
-                        </span>
+                        {att.visibility === "approved_only" && (
+                          <span
+                            style={{
+                              fontSize: "12px",
+                              color: "#e63946",
+                              marginLeft: "6px",
+                            }}
+                          >
+                            [승인자 전용]
+                          </span>
+                        )}
                       </div>
                       <button
                         className="project-detail-page-attachment__download"
@@ -250,13 +364,14 @@ export default function ProjectDetail() {
                       </button>
                     </div>
                   ))}
-                  {project.attachmentVisibility === "approved" && (
+                  {project.attachments.some(
+                    (d) => d.visibility === "approved_only"
+                  ) && (
                     <p className="project-detail-page-attachment__notice">
                       <img src={InfoIcon} alt="info" width={16} height={16} />
                       <>
-                        이 문서는 액세스 권한이 있는 사용자만 열람 가능합니다.
-                        참여 신청 후 리더의 승인을 받으면 다운로드할 수
-                        있습니다.
+                        [승인자 전용] 표기 문서는 리더의 승인을 받으면
+                        다운로드할 수 있습니다.
                       </>
                     </p>
                   )}
@@ -271,23 +386,35 @@ export default function ProjectDetail() {
                 신청 현황
               </h3>
               <div className="project-detail-page-positions">
-                {project.positions.map((pos) => (
+                {project?.roles?.length > 0 ? (
+                  project.roles.map((pos) => (
+                    <PositionRow
+                      key={pos?.role}
+                      role={pos?.role}
+                      current={pos?.current}
+                      total={pos?.total}
+                    />
+                  ))
+                ) : (
                   <PositionRow
-                    key={pos.role}
-                    role={pos.role}
-                    current={pos.current}
-                    total={pos.total}
+                    key={"전체"}
+                    role={"전체"}
+                    current={project?.current_member_count}
+                    total={project?.total_headcount}
                   />
-                ))}
+                )}
               </div>
 
               <div className="project-detail-page-sidebar-actions">
                 <button
                   className="project-detail-page-action-btn project-detail-page-action-btn--primary"
                   onClick={handleApply}
+                  disabled={project.recruitment_status === "closed"}
                 >
-                  <img src={HandIcon} alt="hand" width={16} height={16} /> 팀원
-                  신청하기
+                  <img src={HandIcon} alt="hand" width={16} height={16} />{" "}
+                  {project.recruitment_status === "closed"
+                    ? "모집 마감됨"
+                    : "팀원 신청하기"}
                 </button>
                 {isOwner && (
                   <button
@@ -310,16 +437,6 @@ export default function ProjectDetail() {
                 충분히 작성되었는지 검토해보세요.
               </p>
             </div>
-
-            {/* TODO: 추후 할래말래 운영 페이지 */}
-            {/* <div className="project-detail-page-sidebar-links">
-              <button className="project-detail-page-sidebar-link">
-                💬 Help Center
-              </button>
-              <button className="project-detail-page-sidebar-link">
-                🔒 Privacy
-              </button>
-            </div> */}
           </aside>
         </div>
       </div>
