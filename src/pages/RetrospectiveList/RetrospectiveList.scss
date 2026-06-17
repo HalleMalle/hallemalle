@@ -27,6 +27,23 @@
   line-height: $line-height-normal;
 }
 
+.retrospective-list-add {
+  @include button-base;
+
+  display: inline-block;
+  margin-top: $spacing-md;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
 .retrospective-list-status {
   padding: $spacing-3xl $spacing-lg;
   border: 1px solid $gray-200;
