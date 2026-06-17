@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,16 +11,37 @@ export default function Header() {
   const { user, isAuthenticated, signOut } = useAuth();
   const { unreadCount } = useNotifications();
   const [showNotif, setShowNotif] = useState(false);
+  const notifRef = useRef(null);
 
   const toggleNotif = useCallback(() => setShowNotif((v) => !v), []);
   const closeNotif = useCallback(() => setShowNotif(false), []);
+
+  // 드롭다운이 열린 동안 바깥 영역을 클릭하면 닫는다.
+  useEffect(() => {
+    if (!showNotif) {
+      return;
+    }
+
+    const handlePointerDown = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        closeNotif();
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [showNotif, closeNotif]);
   const handleSignOut = useCallback(async () => {
     await signOut();
     closeNotif();
   }, [closeNotif, signOut]);
 
   const profileImage = user?.photo_url || user?.photoURL || "";
-  const profileLabel = user?.display_name || user?.displayName || user?.github_login || "프로필";
+  const profileLabel =
+    user?.display_name || user?.displayName || user?.github_login || "프로필";
 
   return (
     <header className="header">
@@ -44,7 +65,7 @@ export default function Header() {
         <div className="header-actions">
           {isAuthenticated ? (
             <>
-              <div className="notif-wrapper">
+              <div className="notif-wrapper" ref={notifRef}>
                 <button
                   type="button"
                   className="action-btn"
@@ -76,14 +97,25 @@ export default function Header() {
               </div>
               <Link to="/profile" className="action-btn">
                 {profileImage ? (
-                  <img src={profileImage} alt={profileLabel} className="avatar-xs" />
+                  <img
+                    src={profileImage}
+                    alt={profileLabel}
+                    className="avatar-xs"
+                  />
                 ) : (
-                  <span className="avatar-xs avatar-fallback" aria-label={profileLabel}>
+                  <span
+                    className="avatar-xs avatar-fallback"
+                    aria-label={profileLabel}
+                  >
                     {profileLabel.slice(0, 1)}
                   </span>
                 )}
               </Link>
-              <button type="button" className="logout-btn" onClick={handleSignOut}>
+              <button
+                type="button"
+                className="logout-btn"
+                onClick={handleSignOut}
+              >
                 로그아웃
               </button>
             </>
