@@ -23,6 +23,7 @@ import RetrospectiveList from "@/pages/RetrospectiveList";
 import RetrospectiveWrite from "@/pages/RetrospectiveWrite";
 import RetrospectiveDetail from "@/pages/RetrospectiveDetail";
 import RetrospectiveEdit from "@/pages/RetrospectiveEdit";
+import MyRetrospectives from "@/pages/MyRetrospectives";
 import ReviewWrite from "@/pages/ReviewWrite";
 
 export default function AppRouter() {
@@ -132,6 +133,14 @@ export default function AppRouter() {
                 element={
                   <ProtectedRoute>
                     <MyScrappedReferences />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/memoirs/my-article"
+                element={
+                  <ProtectedRoute>
+                    <MyRetrospectives />
                   </ProtectedRoute>
                 }
               />

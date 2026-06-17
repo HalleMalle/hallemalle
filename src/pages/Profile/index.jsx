@@ -19,6 +19,11 @@ const PROFILE_LINKS = [
     description: '찜해 둔 프로젝트 참고 주제를 모아봅니다.',
   },
   {
+    to: '/profile/memoirs/my-article',
+    title: '나의 회고록',
+    description: '내가 작성한 협업 회고록을 모아봅니다.',
+  },
+  {
     to: '/profile/portfolio',
     title: 'GitHub 포트폴리오',
     description: 'GitHub 활동 요약과 기술 언어 비율을 확인합니다.',

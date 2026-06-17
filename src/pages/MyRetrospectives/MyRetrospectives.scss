@@ -1,0 +1,109 @@
+@use "@/styles/main" as *;
+
+.my-retrospective-page {
+  padding: $spacing-2xl 0 $spacing-3xl;
+}
+
+.my-retrospective-header {
+  margin-bottom: $spacing-xl;
+}
+
+.my-retrospective-back {
+  display: inline-block;
+  margin-bottom: $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.my-retrospective-eyebrow {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.my-retrospective-title {
+  margin-top: $spacing-xs;
+  font-size: $font-size-2xl;
+  line-height: $line-height-tight;
+}
+
+.my-retrospective-subtitle {
+  margin-top: $spacing-sm;
+  max-width: 42rem;
+  color: $text-secondary;
+  line-height: $line-height-normal;
+}
+
+.my-retrospective-status {
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  color: $text-secondary;
+  text-align: center;
+}
+
+.my-retrospective-status-error {
+  border-color: $danger-light;
+  background: $danger-light;
+  color: $danger;
+}
+
+.my-retrospective-empty {
+  @include flex-col-center;
+
+  padding: $spacing-3xl $spacing-lg;
+  border: 1px dashed $gray-300;
+  border-radius: $radius-lg;
+  background: $bg-secondary;
+  text-align: center;
+}
+
+.my-retrospective-empty-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.my-retrospective-empty-description {
+  margin-top: $spacing-xs;
+  color: $text-secondary;
+}
+
+.my-retrospective-empty-link {
+  margin-top: $spacing-lg;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $text-inverse;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.my-retrospective-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-lg;
+
+  @include tablet-up {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include desktop {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
