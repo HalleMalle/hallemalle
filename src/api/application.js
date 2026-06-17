@@ -17,8 +17,6 @@ import { db } from "./firebase";
 const APPLICANTS_COL = "applicants";
 const ATTACHMENTS_COL = "applicant_attachments";
 
-// ── 내부 유틸 ──────────────────────────────────────────────────────────────
-
 function createApplicantError(code, message) {
   const error = new Error(message);
   error.code = code;
