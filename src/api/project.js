@@ -4,7 +4,6 @@ import {
   collection,
   doc,
   setDoc,
-  addDoc,
   getDoc,
   getDocs,
   updateDoc,
@@ -16,12 +15,7 @@ import {
   startAfter,
   serverTimestamp,
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 import { db, storage } from "./firebase";
 
@@ -33,7 +27,7 @@ const DOCUMENTS_COL = "planning_documents";
 
 const PAGE_SIZE = 12;
 
-// 내부 유틸
+// 내부 유틸 (보안 규칙 isValidParticipationStage, isValidRecruitmentStatus 일치화)
 function toDbStage(formStage) {
   const map = { planning: "plan", development: "dev", maintenance: "maintain" };
   return map[formStage] ?? formStage;
@@ -49,256 +43,290 @@ function toDbStatus(formStatus) {
   return map[formStatus] ?? "recruiting";
 }
 
-async function uploadThumbnail(file, postId) {
-  const storageRef = ref(storage, `togethers/${postId}/thumbnail_${file.name}`);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
-}
-
-async function uploadDocument(file, postId) {
-  const storageRef = ref(storage, `togethers/${postId}/documents/${file.name}`);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+/**
+ * 썸네일 이미지 변환
+ */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result); // "data:image/png;base64,..."
+    reader.onerror = () => reject(new Error("파일 읽기 실패"));
+    reader.readAsDataURL(file);
+  });
 }
 
 /**
- * 프로젝트 신규 생성 (with Roles, Documents, Tech Stack)
+ * 기획 문서 첨부 파일 스토리지 업로드
  */
-export async function createProject(formData) {
-  const {
-    creatorId,
-    title,
-    description,
-    startDate,
-    endDate,
-    headcount,
-    status,
-    participationStage,
-    positions = [],
-    contactType,
-    contactValue,
-    thumbnail,
-    attachments = [],
-    techStack = [],
-  } = formData;
+async function uploadPlanningDocument(file, postId) {
+  const storageRef = ref(storage, `togethers/${postId}/documents/${file.name}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snapshot.ref);
+}
 
+export async function convertPdfToBase64(file) {
+  if (!file) return "";
+
+  // Firestore 용량 제한을 고려해 1MB (1,048,576 bytes) 체크 추가
+  const MAX_SIZE = 1 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    throw new Error(
+      "스토리지 비용 절감을 위해 1MB 이하의 PDF 파일만 업로드 가능합니다."
+    );
+  }
+
+  // PDF 확장자 확인 (선택 사항이지만 안전장치로 추가)
+  if (file.type !== "application/pdf") {
+    throw new Error("PDF 파일 형식만 업로드할 수 있습니다.");
+  }
+
+  return await fileToBase64(file); // 범용 변환 함수 호출 ("data:application/pdf;base64,...")
+}
+
+/**
+ * 1. 프로젝트 생성 (보안 규칙 100% 통과 버전)
+ */
+export async function createProject(formData, userId) {
   const togetherRef = doc(collection(db, TOGETHERS_COL));
   const postId = togetherRef.id;
 
-  // 1) togethers 기본 문서 세팅
-  await setDoc(togetherRef, {
+  const finalUserId = userId || formData.creatorId || formData.created_by || "";
+
+  // 썸네일 처리
+  // ProjectForm은 thumbnail 키 하나로만 File 인스턴스를 전달합니다.
+  let thumbnailUrl = "";
+  if (formData.thumbnail instanceof File) {
+    try {
+      thumbnailUrl = await fileToBase64(formData.thumbnail);
+    } catch (err) {
+      console.warn("썸네일 변환 실패:", err.message);
+    }
+  } else if (typeof formData.thumbnail === "string") {
+    thumbnailUrl = formData.thumbnail;
+  }
+
+  // 🛠 [보안규칙 정밀 대응] isValidTogetherCreate 검증 스키마 일치화
+  const togetherData = {
     post_id: postId,
-    created_by: creatorId,
-    title: title.trim(),
-    description: description.trim(),
-    thumbnail_url: null,
-    recruitment_status: toDbStatus(status),
-    participation_stage: toDbStage(participationStage),
-    recruitment_start: startDate || null,
-    recruitment_end: endDate || null,
-    total_headcount: headcount ?? 2,
-    current_member_count: 0,
-    contact_type: contactType,
-    contact_value: contactValue.trim(),
-    view_count: 0,
-    is_private: false,
-    created_at: serverTimestamp(),
-    updated_at: serverTimestamp(),
-  });
-
-  // 썸네일 업로드 처리
-  if (thumbnail instanceof File) {
-    const thumbnailUrl = await uploadThumbnail(thumbnail, postId);
-    await updateDoc(togetherRef, { thumbnail_url: thumbnailUrl });
-  }
-
-  // 2) 모집 포지션 배열 빌드
-  const rolePromises = positions
-    .filter((p) => p.total > 0)
-    .map((p) =>
-      addDoc(collection(db, TOGETHER_ROLES_COL), {
-        post_id: postId,
-        role_type: p.role,
-        headcount: p.total,
-        filled_count: 0,
-      })
-    );
-
-  // 3) 기획 문서 파일 업로드 및 레코드 배열 빌드
-  const docPromises = attachments.map(async ({ file, name, visibility }) => {
-    if (!(file instanceof File)) return null;
-    const fileUrl = await uploadDocument(file, postId);
-    return addDoc(collection(db, DOCUMENTS_COL), {
-      post_id: postId,
-      file_name: name,
-      file_url: fileUrl,
-      visibility: visibility === "approved_only" ? "approved_only" : "public",
-    });
-  });
-
-  // 4) 💡 [버그 교정] undefined 유발 map 구문을 거르고 안전하게 프로미스 배열 확보
-  const validTechStack = techStack.filter(
-    (tag) => typeof tag === "string" && tag.trim() !== ""
-  );
-  const techPromises = validTechStack.map((tag) =>
-    addDoc(collection(db, TECH_STACK_COL), {
-      post_id: postId,
-      tag: tag.trim(),
-    })
-  );
-
-  // 5) 비동기 배열 일괄 해제 실행 전 null 이나 undefined 인 찌꺼기들 깔끔하게 쳐내기
-  const allPromises = [...rolePromises, ...docPromises, ...techPromises].filter(
-    Boolean
-  );
-  await Promise.all(allPromises);
-
-  return { id: postId };
-}
-
-/**
- * 프로젝트 수정 (기존 연관 서브 데이터 일괄 삭제 후 재생성 패턴)
- */
-export async function updateProject(postId, currentUserId, formData) {
-  const togetherRef = doc(db, TOGETHERS_COL, postId);
-  const snap = await getDoc(togetherRef);
-
-  if (!snap.exists()) throw new Error("프로젝트를 찾을 수 없습니다.");
-  if (snap.data().created_by !== currentUserId) {
-    throw new Error("수정 권한이 없습니다.");
-  }
-
-  const {
-    title,
-    description,
-    startDate,
-    endDate,
-    headcount,
-    status,
-    participationStage,
-    positions = [],
-    contactType,
-    contactValue,
-    thumbnail,
-    attachments = [],
-    techStack = [],
-  } = formData;
-
-  const updatePayload = {
-    title: title.trim(),
-    description: description.trim(),
-    recruitment_status: toDbStatus(status),
-    participation_stage: toDbStage(participationStage),
-    recruitment_start: startDate || null,
-    recruitment_end: endDate || null,
-    total_headcount: headcount ?? 2,
-    contact_type: contactType,
-    contact_value: contactValue.trim(),
-    updated_at: serverTimestamp(),
+    created_by: finalUserId,
+    title: formData.title || "",
+    description: formData.description || "",
+    recruitment_status: toDbStatus(formData.status), // 'recruiting' | 'closed'
+    participation_stage: toDbStage(formData.stage), // 'plan' | 'dev' | 'maintain'
+    total_headcount: Number(formData.headcount || formData.totalHeadcount || 2), // int (2 ~ 20)
+    current_member_count: Number(formData.currentMemberCount || 0), // int (>=0)
+    contact_type: formData.contactType || "email", // 'email' | 'kakao' | 'link' | 'other'
+    contact_value: formData.contactValue || "",
+    view_count: 0, // 💡 규칙 필수: 반드시 정확히 0 이여야 함
+    is_private: Boolean(formData.isPrivate || false), // bool
+    thumbnail_url: thumbnailUrl,
+    recruitment_start:
+      formData.recruitmentStart ||
+      formData.recruitment_start ||
+      formData.startDate ||
+      "",
+    recruitment_end:
+      formData.recruitmentEnd ||
+      formData.recruitment_end ||
+      formData.endDate ||
+      "",
+    created_at: serverTimestamp(), // 💡 규칙 필수: request.time과 동치
+    updated_at: serverTimestamp(), // 💡 규칙 필수: request.time과 동치
   };
 
-  if (thumbnail instanceof File) {
-    const thumbnailUrl = await uploadThumbnail(thumbnail, postId);
-    updatePayload.thumbnail_url = thumbnailUrl;
+  // 1. 메인 프로젝트 다큐먼트 먼저 생성
+  await setDoc(togetherRef, togetherData);
+
+  // 2. 역할군 생성 (together_roles 규칙 통과 보완)
+  // ProjectForm은 positions 키로 역할 배열을 전달합니다.
+  const rolesData = formData.positions || formData.roles || [];
+  if (Array.isArray(rolesData) && rolesData.length > 0) {
+    for (const r of rolesData) {
+      const rRef = doc(collection(db, TOGETHER_ROLES_COL));
+      await setDoc(rRef, {
+        post_id: postId,
+        role_type: r.role, // 규칙 필수: isValidRole 검증 통과용 키값
+        headcount: Number(r.total || 1), // 규칙 필수: int형 >= 1
+        filled_count: 0, // 규칙 필수: 무조건 0으로 시작해야 생성 허용됨
+      });
+    }
   }
 
-  await updateDoc(togetherRef, updatePayload);
-
-  // 1) 기존 포지션 제거 후 재생성
-  const existingRolesSnap = await getDocs(
-    query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
-  );
-  await Promise.all(existingRolesSnap.docs.map((d) => deleteDoc(d.ref)));
-
-  const rolePromises = positions
-    .filter((p) => p.total > 0)
-    .map((p) =>
-      addDoc(collection(db, TOGETHER_ROLES_COL), {
+  // 3. 기술 스택 생성 (together_tech_stack 규칙 통과 보완)
+  if (formData.techStack && Array.isArray(formData.techStack)) {
+    for (const tag of formData.techStack) {
+      if (!tag || tag.trim() === "") continue;
+      const tRef = doc(collection(db, TECH_STACK_COL));
+      await setDoc(tRef, {
         post_id: postId,
-        role_type: p.role,
-        headcount: p.total,
-        filled_count: 0,
-      })
-    );
-
-  // 2) 기존 기획문서 제거 후 재생성
-  const existingDocsSnap = await getDocs(
-    query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
-  );
-  await Promise.all(
-    existingDocsSnap.docs.map(async (d) => {
-      const data = d.data();
-      if (data.file_url) {
-        try {
-          const fileRef = ref(storage, data.file_url);
-          await deleteObject(fileRef);
-        } catch (e) {
-          console.warn("기존 파일 삭제 실패 (무시 가능):", e);
-        }
-      }
-      await deleteDoc(d.ref);
-    })
-  );
-
-  const docPromises = attachments.map(
-    async ({ file, name, visibility, url }) => {
-      if (!file && url) {
-        return addDoc(collection(db, DOCUMENTS_COL), {
-          post_id: postId,
-          file_name: name,
-          file_url: url,
-          visibility,
-        });
-      }
-      if (file instanceof File) {
-        const fileUrl = await uploadDocument(file, postId);
-        return addDoc(collection(db, DOCUMENTS_COL), {
-          post_id: postId,
-          file_name: name,
-          file_url: fileUrl,
-          visibility,
-        });
-      }
-      return null;
+        tag: tag.trim(), // 규칙 필수: NonEmptyString 검증
+      });
     }
-  );
+  }
 
-  // 3) 기존 스택 제거 후 재생성
-  const existingTechSnap = await getDocs(
-    query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
-  );
-  await Promise.all(existingTechSnap.docs.map((d) => deleteDoc(d.ref)));
+  // 4. 첨부 기획 문서 생성 (planning_documents 규칙 통과 보완)
+  // ProjectForm은 attachments 배열의 각 항목을 { name, file, url, visibility } 형태로 전달합니다.
+  // visibility 값은 항목별로 다를 수 있으므로 formData.attachmentVisibility 대신 file.visibility를 사용합니다.
+  if (formData.attachments && Array.isArray(formData.attachments)) {
+    for (const attachment of formData.attachments) {
+      let fileUrl = "";
 
-  const validTechStack = techStack.filter(
-    (tag) => typeof tag === "string" && tag.trim() !== ""
-  );
-  const techPromises = validTechStack.map((tag) =>
-    addDoc(collection(db, TECH_STACK_COL), {
-      post_id: postId,
-      tag: tag.trim(),
-    })
-  );
+      if (attachment.file instanceof File) {
+        try {
+          fileUrl = await convertPdfToBase64(attachment.file);
+        } catch (err) {
+          console.warn(
+            "[Storage] 문서 업로드 실패:",
+            attachment.name,
+            err.message
+          );
+          continue;
+        }
+      } else if (typeof attachment.url === "string" && attachment.url) {
+        fileUrl = attachment.url;
+      }
 
-  const allPromises = [...rolePromises, ...docPromises, ...techPromises].filter(
-    Boolean
-  );
-  await Promise.all(allPromises);
+      if (!fileUrl) continue;
+
+      const dRef = doc(collection(db, DOCUMENTS_COL));
+      // 규칙 필수: visibility는 'public' 또는 'approved_only' 만 허용
+      const dbVisibility =
+        attachment.visibility === "approved_only" ? "approved_only" : "public";
+
+      await setDoc(dRef, {
+        post_id: postId,
+        file_name: attachment.name || "첨부문서",
+        file_url: fileUrl,
+        visibility: dbVisibility,
+      });
+    }
+  }
+
+  return postId;
 }
 
 /**
- * 단건 프로젝트 및 매핑 데이터 병합 조회 (Detail용)
+ * 2. 프로젝트 수정
  */
-export async function getProject(postId) {
+export async function updateProject(postId, formData) {
   const togetherRef = doc(db, TOGETHERS_COL, postId);
-  const togetherSnap = await getDoc(togetherRef);
 
-  if (!togetherSnap.exists()) {
+  let thumbnailUrl = "";
+  if (formData.thumbnail instanceof File) {
+    try {
+      thumbnailUrl = await fileToBase64(formData.thumbnail);
+    } catch (err) {
+      console.warn("썸네일 변환 실패:", err.message);
+    }
+  } else if (typeof formData.thumbnail === "string") {
+    thumbnailUrl = formData.thumbnail;
+  }
+
+  const updateData = {
+    title: formData.title,
+    description: formData.description,
+    recruitment_status: toDbStatus(formData.status),
+    participation_stage: toDbStage(formData.stage),
+    total_headcount: Number(formData.headcount || formData.totalHeadcount || 2),
+    current_member_count: Number(formData.currentMemberCount || 0),
+    contact_type: formData.contactType || "email",
+    contact_value: formData.contactValue || "",
+    is_private: Boolean(formData.isPrivate || false),
+    thumbnail_url: thumbnailUrl,
+    recruitment_start:
+      formData.recruitmentStart || formData.recruitment_start || "",
+    recruitment_end: formData.recruitmentEnd || formData.recruitment_end || "",
+    updated_at: serverTimestamp(), // 💡 규칙 필수: 수정 시 updated_at만 request.time으로 변경 허용
+  };
+
+  await updateDoc(togetherRef, updateData);
+
+  // 역할 서브컬렉션 교체
+  const rolesSnap = await getDocs(
+    query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
+  );
+  for (const docUuid of rolesSnap.docs) {
+    await deleteDoc(docUuid.ref);
+  }
+  const updateRolesData = formData.positions || formData.roles || [];
+  for (const r of updateRolesData) {
+    const rRef = doc(collection(db, TOGETHER_ROLES_COL));
+    await setDoc(rRef, {
+      post_id: postId,
+      role_type: r.role,
+      headcount: Number(r.total || 1),
+      filled_count: Number(r.current || 0),
+    });
+  }
+
+  // 기술 스택 서브컬렉션 교체
+  const techSnap = await getDocs(
+    query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
+  );
+  for (const docUuid of techSnap.docs) {
+    await deleteDoc(docUuid.ref);
+  }
+  if (formData.techStack && Array.isArray(formData.techStack)) {
+    for (const tag of formData.techStack) {
+      if (!tag || tag.trim() === "") continue;
+      const tRef = doc(collection(db, TECH_STACK_COL));
+      await setDoc(tRef, {
+        post_id: postId,
+        tag: tag.trim(),
+      });
+    }
+  }
+
+  // 문서 서브컬렉션 교체
+  if (formData.attachments && Array.isArray(formData.attachments)) {
+    const docsSnap = await getDocs(
+      query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
+    );
+
+    const remainingUrls = new Set(
+      formData.attachments.filter((f) => !f.rawFile).map((f) => f.url)
+    );
+
+    for (const docUuid of docsSnap.docs) {
+      const dData = docUuid.data();
+      if (!remainingUrls.has(dData.file_url)) {
+        await deleteDoc(docUuid.ref);
+      }
+    }
+
+    for (const file of formData.attachments) {
+      if (file.rawFile) {
+        const fileUrl = await uploadPlanningDocument(file.rawFile, postId);
+        const dRef = doc(collection(db, DOCUMENTS_COL));
+        const dbVisibility =
+          formData.attachmentVisibility === "public"
+            ? "public"
+            : "approved_only";
+
+        await setDoc(dRef, {
+          post_id: postId,
+          file_name: file.name,
+          file_url: fileUrl,
+          visibility: dbVisibility,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * 3. 프로젝트 상세 조회
+ */
+export async function getProjectDetail(postId) {
+  const docRef = doc(db, TOGETHERS_COL, postId);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) {
     return null;
   }
 
-  const togetherData = togetherSnap.data();
+  const pData = docSnap.data();
 
-  // 하위 연관 데이터 세트 가져오기
   const rolesSnap = await getDocs(
     query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
   );
@@ -309,31 +337,56 @@ export async function getProject(postId) {
     query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
   );
 
-  const roles = rolesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  const techStack = techSnap.docs.map((d) => d.data().tag);
-  const documents = docsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const mappedRoles = rolesSnap.docs.map((r) => {
+    const d = r.data();
+    return {
+      role: d.role_type,
+      total: d.headcount,
+      current: d.filled_count,
+    };
+  });
+
+  const attachmentsData = docsSnap.docs.map((docUuid) => {
+    const d = docUuid.data();
+    return {
+      name: d.file_name,
+      url: d.file_url,
+      visibility: d.visibility,
+    };
+  });
 
   return {
-    ...togetherData,
-    roles,
-    techStack,
-    documents,
+    ...pData,
+    post_id: postId,
+    status: pData.recruitment_status,
+    stage: toFormStage(pData.participation_stage),
+    totalHeadcount: pData.total_headcount,
+    currentMemberCount: pData.current_member_count,
+    contactType: pData.contact_type,
+    contactValue: pData.contact_value,
+    isPrivate: pData.is_private,
+    recruitmentStart: pData.recruitment_start || "",
+    recruitmentEnd: pData.recruitment_end || "",
+    thumbnail: pData.thumbnail_url || "",
+    roles: mappedRoles,
+    techStack: techSnap.docs.map((t) => t.data().tag),
+    attachments: attachmentsData,
+    attachmentVisibility:
+      attachmentsData[0]?.visibility === "public" ? "public" : "approved",
   };
 }
 
 /**
- * 프로젝트 목록 전체 조회 (Firestore 쿼리 순서 제약 조건 완벽 수정 버전)
+ * 4. 프로젝트 목록 전체 조회
  */
 export async function getProjectList({
   roleFilter,
   statusFilter,
   lastDoc,
 } = {}) {
-  // 1. 순서 정렬을 위해 기본 필터(where)와 정렬/제한(order/limit) 분리 빌드
-  let baseFilters = [where("is_private", "==", false)];
-  let pageConstraints = [orderBy("created_at", "desc"), limit(PAGE_SIZE)];
+  const baseFilters = [where("is_private", "==", false)];
+  const pageConstraints = [orderBy("created_at", "desc"), limit(PAGE_SIZE)];
 
-  // statusFilter가 안전한 문자열일 때만 필터(where) 목록 맨 앞에 추가
   if (
     statusFilter &&
     typeof statusFilter === "string" &&
@@ -342,14 +395,11 @@ export async function getProjectList({
     baseFilters.push(where("recruitment_status", "==", statusFilter.trim()));
   }
 
-  // 페이징 스냅샷이 있을 때만 추가
   if (lastDoc) {
     pageConstraints.push(startAfter(lastDoc));
   }
 
-  // 🔥 [핵심 교정] 모든 where 절이 orderBy, limit보다 무조건 앞으로 오도록 순서 보장 조합
   const finalConstraints = [...baseFilters, ...pageConstraints];
-
   const projectQuery = query(
     collection(db, TOGETHERS_COL),
     ...finalConstraints
@@ -360,7 +410,6 @@ export async function getProjectList({
     return { projects: [], lastDoc: null, hasMore: false };
   }
 
-  // roleFilter가 있을 때 해당 role이 포함된 post_id 집합을 먼저 조회
   let allowedPostIds = null;
   if (
     roleFilter &&
@@ -381,21 +430,18 @@ export async function getProjectList({
     const pData = d.data();
     const targetPostId = pData.post_id || d.id;
 
-    // 역할 필터가 켜져 있는데 일치하는 post_id 결과 목록에 없다면 스킵
     if (allowedPostIds && !allowedPostIds.has(targetPostId)) {
       continue;
     }
 
     if (!targetPostId) continue;
 
-    // 연관된 파트(역할) 데이터 병합 조인
     const rolesSnap = await getDocs(
       query(
         collection(db, TOGETHER_ROLES_COL),
         where("post_id", "==", targetPostId)
       )
     );
-    // 연관된 기술 스택 데이터 병합 조인
     const techSnap = await getDocs(
       query(
         collection(db, TECH_STACK_COL),
@@ -406,6 +452,8 @@ export async function getProjectList({
     projects.push({
       ...pData,
       post_id: targetPostId,
+      status: pData.recruitment_status,
+      stage: toFormStage(pData.participation_stage),
       roles: rolesSnap.docs.map((r) => r.data()),
       techStack: techSnap.docs.map((t) => t.data().tag),
     });

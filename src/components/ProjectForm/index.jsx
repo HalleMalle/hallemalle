@@ -151,7 +151,9 @@ export default function ProjectForm({
     title.trim() !== "" &&
     description.trim() !== "" &&
     selectedRoles.size > 0 &&
-    totalSlots >= 2;
+    totalSlots >= 2 &&
+    planningDocs.filter(({ file }) => (file.size / 1024 / 1024).toFixed(1) >= 1)
+      ?.length == 0;
 
   const handleDatePickerOpen = (ref) => {
     ref.current?.showPicker();
@@ -239,7 +241,6 @@ export default function ProjectForm({
 
     setSubmitting(true);
     try {
-      // total > 0인 역할만 포함 (0명 역할 제외)
       const positions = [...selectedRoles]
         .filter((role) => (roleCounts[role] || 0) > 0)
         .map((role) => ({
@@ -249,8 +250,6 @@ export default function ProjectForm({
           current: 0,
         }));
 
-      // headcount를 positions 합계(totalSlots)로 자동 계산해서 전달
-      // API의 total_headcount 필드에 매핑됨
       const data = {
         title: title.trim(),
         description: description.trim(),
@@ -258,19 +257,20 @@ export default function ProjectForm({
         endDate: endDate || null,
         headcount: totalSlots,
         status,
+        // 수신부(project.js 또는 부모 컴포넌트)에서 'stage'나 'participationStage'
+        // 어떤 것을 구조분해하더라도 undefined가 되지 않도록 두 키 모두에 값을 명시합니다.
+        stage: stage,
         participationStage: stage,
         positions,
         contactType,
         contactValue: contactValue.trim(),
         thumbnail: thumbnail || null,
-        // visibility를 그대로 전달 ("public" | "approved_only")
-        // API 내부에서 "approved" 비교 → "approved_only" 이중 변환 제거
         attachments: hasAttachmentStage
           ? planningDocs.map(({ name, file, url, visibility }) => ({
               name,
               file: file || null,
               url: url || null,
-              visibility, // "public" | "approved_only"
+              visibility,
             }))
           : [],
         techStack: Array.from(selectedStack),
@@ -515,7 +515,12 @@ export default function ProjectForm({
               <span className="doc-name">{doc.name}</span>
               {doc.file && (
                 <span className="doc-size">
-                  {(doc.file.size / 1024 / 1024).toFixed(1)} MB
+                  {(doc.file.size / 1024 / 1024).toFixed(1)} MB{" "}
+                  {(doc.file.size / 1024 / 1024).toFixed(1) >= 1 && (
+                    <span className="label-hint required-text">
+                      1MB 미만이어야 합니다.
+                    </span>
+                  )}
                 </span>
               )}
             </div>

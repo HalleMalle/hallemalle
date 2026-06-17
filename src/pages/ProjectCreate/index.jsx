@@ -19,14 +19,11 @@ export default function ProjectCreate() {
     setError(null);
 
     try {
-      const projectData = {
-        ...data,
-        creatorId: user.uid,
-      };
+      const newPostId = await createProject(data, user?.uid);
 
-      const result = await createProject(projectData);
-
-      if (result?.id) navigate(`/togethers/${result.id}`);
+      if (newPostId) {
+        navigate(`/togethers/${newPostId}`);
+      }
     } catch (err) {
       console.error("ProjectCreate submit error:", err);
       setError("프로젝트 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
