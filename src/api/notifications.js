@@ -1,8 +1,10 @@
 import {
+  addDoc,
   collection,
   doc,
   getDocs,
   query,
+  serverTimestamp,
   updateDoc,
   where,
   writeBatch,
@@ -177,4 +179,46 @@ export async function markAllAsRead(uid) {
   }
 
   return { updatedCount: unread.length }
+}
+
+// 알림 생성. 신청/승인/반려 등 트리거 지점(api/application.js)에서 호출한다.
+// 호출 측은 best-effort로 감싸 알림 실패가 본 작업(신청/승인 등)을 막지 않도록 한다.
+export async function createNotification({
+  receiverUid,
+  type,
+  message,
+  refProjectId = null,
+  refApplicationId = null,
+}) {
+  assertFirebaseConfigured()
+
+  if (!receiverUid) {
+    return { created: false }
+  }
+
+  const payload = {
+    receiver_uid: receiverUid,
+    type: type || 'SYSTEM',
+    message: message || '',
+    is_read: false,
+    created_at: serverTimestamp(),
+  }
+
+  if (refProjectId) {
+    payload.ref_project_id = refProjectId
+  }
+
+  if (refApplicationId) {
+    payload.ref_application_id = refApplicationId
+  }
+
+  try {
+    const ref = await addDoc(collection(db, 'notifications'), payload)
+    return { created: true, notificationId: ref.id }
+  } catch {
+    throw createNotificationError(
+      'NOTI-CREATE-FAILED',
+      '알림 생성에 실패했습니다.'
+    )
+  }
 }
