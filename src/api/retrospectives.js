@@ -3,7 +3,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -54,15 +53,31 @@ function toMemoir(memoirId, data) {
   };
 }
 
+// created_at(Timestamp) 기준 최신순 정렬. equality where + orderBy 조합의 복합 인덱스를
+// 피하기 위해 정렬은 클라이언트에서 수행한다(프로젝트 컨벤션, scraps.js와 동일).
+function toMillis(timestamp) {
+  if (timestamp && typeof timestamp.toMillis === "function") {
+    return timestamp.toMillis();
+  }
+
+  return 0;
+}
+
+function sortByCreatedAtDesc(memoirs) {
+  return [...memoirs].sort(
+    (a, b) => toMillis(b.createdAt) - toMillis(a.createdAt)
+  );
+}
+
 // F-MEM-001: 공개 회고록 목록 조회 (최신순).
 // 목록은 비로그인(Guest)도 열람 가능 — 접근 차단은 Firestore Rules에서 수행한다.
+// is_public 단일 equality 필터만 사용하고 정렬은 클라이언트에서 처리해 복합 인덱스 없이 동작한다.
 export async function getMemoirs() {
   assertFirebaseConfigured();
 
   const memoirsQuery = query(
     collection(db, "memoirs"),
-    where("is_public", "==", true),
-    orderBy("created_at", "desc")
+    where("is_public", "==", true)
   );
 
   let snapshot;
@@ -75,8 +90,10 @@ export async function getMemoirs() {
     );
   }
 
-  return snapshot.docs.map((memoirSnapshot) =>
-    toMemoir(memoirSnapshot.id, memoirSnapshot.data())
+  return sortByCreatedAtDesc(
+    snapshot.docs.map((memoirSnapshot) =>
+      toMemoir(memoirSnapshot.id, memoirSnapshot.data())
+    )
   );
 }
 
@@ -255,10 +272,11 @@ export async function getMyMemoirs(uid) {
   assertFirebaseConfigured();
   assertAuthenticatedUser(uid, "MEM-004-UNAUTHENTICATED");
 
+  // created_by + is_public(규칙 충족용) equality 필터만 사용하고 정렬은 클라이언트에서 처리한다.
   const myMemoirsQuery = query(
     collection(db, "memoirs"),
     where("created_by", "==", uid),
-    orderBy("created_at", "desc")
+    where("is_public", "==", true)
   );
 
   let snapshot;
@@ -271,7 +289,9 @@ export async function getMyMemoirs(uid) {
     );
   }
 
-  return snapshot.docs.map((memoirSnapshot) =>
-    toMemoir(memoirSnapshot.id, memoirSnapshot.data())
+  return sortByCreatedAtDesc(
+    snapshot.docs.map((memoirSnapshot) =>
+      toMemoir(memoirSnapshot.id, memoirSnapshot.data())
+    )
   );
 }
