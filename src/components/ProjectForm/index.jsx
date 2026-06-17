@@ -532,7 +532,7 @@ export default function ProjectForm({
               >
                 {/* value를 API 스키마 값과 일치시킴 */}
                 <option value="public">🔓 전체 공개</option>
-                <option value="approved_only">🔒 승인한 사용자만 공개</option>
+                {/* <option value="approved_only">🔒 승인한 사용자만 공개</option> */}
               </select>
             </div>
             <button
