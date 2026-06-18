@@ -195,6 +195,9 @@ $color-tip-bg: #eff6ff;
   }
 
   &-tech-tag {
+    display: inline-flex;
+    align-items: center;
+
     height: 24px;
     padding: 0 10px;
     background: #f3f4f6;

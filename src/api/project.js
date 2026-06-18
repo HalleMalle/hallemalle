@@ -206,111 +206,126 @@ export async function createProject(formData, userId) {
 }
 
 /**
- * 2. 프로젝트 수정
+ * 2. 프로젝트 수정 (기존 데이터 업데이트)
  */
-export async function updateProject(postId, formData) {
-  const togetherRef = doc(db, TOGETHERS_COL, postId);
+export async function updateProject(postId, data, uid) {
+  if (!postId || !uid) return false;
 
-  let thumbnailUrl = "";
-  if (formData.thumbnail instanceof File) {
-    try {
-      thumbnailUrl = await fileToBase64(formData.thumbnail);
-    } catch (err) {
-      console.warn("썸네일 변환 실패:", err.message);
-    }
-  } else if (typeof formData.thumbnail === "string") {
-    thumbnailUrl = formData.thumbnail;
-  }
+  const docRef = doc(db, TOGETHERS_COL, postId);
 
-  const updateData = {
-    title: formData.title,
-    description: formData.description,
-    recruitment_status: toDbStatus(formData.status),
-    participation_stage: toDbStage(formData.stage),
-    total_headcount: Number(formData.headcount || formData.totalHeadcount || 2),
-    current_member_count: Number(formData.currentMemberCount || 0),
-    contact_type: formData.contactType || "email",
-    contact_value: formData.contactValue || "",
-    is_private: Boolean(formData.isPrivate || false),
-    thumbnail_url: thumbnailUrl,
-    recruitment_start:
-      formData.recruitmentStart || formData.recruitment_start || "",
-    recruitment_end: formData.recruitmentEnd || formData.recruitment_end || "",
-    updated_at: serverTimestamp(), // 💡 규칙 필수: 수정 시 updated_at만 request.time으로 변경 허용
-  };
+  await updateDoc(docRef, {
+    title: data.title,
+    description: data.description,
+    recruitment_status: toDbStatus(data.status),
+    participation_stage: toDbStage(data.stage),
+    total_headcount: data.headcount,
+    contact_type: data.contactType,
+    contact_value: data.contactValue,
+    updated_at: serverTimestamp(),
+  });
 
-  await updateDoc(togetherRef, updateData);
-
-  // 역할 서브컬렉션 교체
   const rolesSnap = await getDocs(
     query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
   );
-  for (const docUuid of rolesSnap.docs) {
-    await deleteDoc(docUuid.ref);
+  for (const d of rolesSnap.docs) {
+    await deleteDoc(d.ref);
   }
-  const updateRolesData = formData.positions || formData.roles || [];
-  for (const r of updateRolesData) {
+  for (const pos of data.positions) {
     const rRef = doc(collection(db, TOGETHER_ROLES_COL));
     await setDoc(rRef, {
       post_id: postId,
-      role_type: r.role,
-      headcount: Number(r.total || 1),
-      filled_count: Number(r.current || 0),
+      role_type: pos.role,
+      headcount: pos.total,
+      filled_count: pos.current || 0,
     });
   }
 
-  // 기술 스택 서브컬렉션 교체
   const techSnap = await getDocs(
     query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
   );
-  for (const docUuid of techSnap.docs) {
-    await deleteDoc(docUuid.ref);
+  for (const d of techSnap.docs) {
+    await deleteDoc(d.ref);
   }
-  if (formData.techStack && Array.isArray(formData.techStack)) {
-    for (const tag of formData.techStack) {
-      if (!tag || tag.trim() === "") continue;
-      const tRef = doc(collection(db, TECH_STACK_COL));
-      await setDoc(tRef, {
-        post_id: postId,
-        tag: tag.trim(),
-      });
-    }
+  for (const tag of data.techStack) {
+    const tRef = doc(collection(db, TECH_STACK_COL));
+    await setDoc(tRef, {
+      post_id: postId,
+      tag: tag,
+    });
   }
 
-  // 문서 서브컬렉션 교체
-  if (formData.attachments && Array.isArray(formData.attachments)) {
+  const docsSnap = await getDocs(
+    query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
+  );
+  for (const d of docsSnap.docs) {
+    await deleteDoc(d.ref);
+  }
+  for (const docItem of data.attachments) {
+    const dRef = doc(collection(db, DOCUMENTS_COL));
+    await setDoc(dRef, {
+      post_id: postId,
+      file_name: docItem.name,
+      file_url: docItem.url || "",
+    });
+  }
+
+  return true;
+}
+
+/**
+ * 단일 프로젝트 상세 조회 (Form 채우기용)
+ */
+/**
+ * 단일 프로젝트 상세 조회 (Form 채우기용)
+ */
+export async function getProjectById(postId) {
+  if (!postId) {
+    return null;
+  }
+
+  try {
+    const docRef = doc(db, TOGETHERS_COL, postId);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      return null;
+    }
+
+    const pData = docSnap.data();
+
+    const rolesSnap = await getDocs(
+      query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
+    );
+
+    const techSnap = await getDocs(
+      query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
+    );
+
     const docsSnap = await getDocs(
       query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
     );
 
-    const remainingUrls = new Set(
-      formData.attachments.filter((f) => !f.rawFile).map((f) => f.url)
-    );
+    const mappedRoles = rolesSnap.docs.map((r) => {
+      const d = r.data();
+      return {
+        role: d.role_type,
+        total: d.headcount,
+        current: d.filled_count || 0,
+      };
+    });
 
-    for (const docUuid of docsSnap.docs) {
-      const dData = docUuid.data();
-      if (!remainingUrls.has(dData.file_url)) {
-        await deleteDoc(docUuid.ref);
-      }
-    }
-
-    for (const file of formData.attachments) {
-      if (file.rawFile) {
-        const fileUrl = await uploadPlanningDocument(file.rawFile, postId);
-        const dRef = doc(collection(db, DOCUMENTS_COL));
-        const dbVisibility =
-          formData.attachmentVisibility === "public"
-            ? "public"
-            : "approved_only";
-
-        await setDoc(dRef, {
-          post_id: postId,
-          file_name: file.name,
-          file_url: fileUrl,
-          visibility: dbVisibility,
-        });
-      }
-    }
+    return {
+      ...pData,
+      post_id: postId,
+      status: pData.recruitment_status,
+      stage: pData.participation_stage,
+      positions: mappedRoles,
+      techStack: techSnap.docs.map((d) => d.data().tag),
+      documents: docsSnap.docs.map((d) => d.data()),
+    };
+  } catch (error) {
+    console.error("getProjectById 내부에서 에러 발생:", error);
+    return null;
   }
 }
 
