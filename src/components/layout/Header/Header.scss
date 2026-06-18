@@ -193,8 +193,15 @@
 
 /* ─── Mobile Navigation Drawer ─── */
 .mobile-menu-layer {
+  // 부모 .header에 backdrop-filter가 걸려 있어 fixed 자식의 containing block이
+  // 헤더(높이 $header-height)로 갇힌다. inset:0/height:100%는 헤더 높이로 붕괴되므로
+  // 뷰포트 단위(vh/dvh)로 전체 화면 높이를 직접 지정한다.
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100dvh;
   z-index: 2100;
   display: none;
 
