@@ -21,6 +21,11 @@
   background: $bg-primary;
   box-shadow: $shadow-xl;
   @include custom-scrollbar;
+
+  @include mobile {
+    padding: $spacing-lg;
+    max-height: calc(100vh - #{$spacing-md});
+  }
 }
 
 .reference-modal-header {

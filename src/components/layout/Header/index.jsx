@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
@@ -7,20 +7,40 @@ import NotificationDropdown from "@/components/NotificationDropdown";
 
 import "./Header.scss";
 
+const NAV_ITEMS = [
+  { to: "/togethers", label: "프로젝트" },
+  { to: "/references", label: "참고주제" },
+  { to: "/memoirs", label: "회고록" },
+];
+
 export default function Header() {
   const { user, isAuthenticated, signOut } = useAuth();
   const { unreadCount } = useNotifications();
+  const location = useLocation();
+
   const [showNotif, setShowNotif] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const notifRef = useRef(null);
 
-  const toggleNotif = useCallback(() => setShowNotif((v) => !v), []);
+  const toggleNotif = useCallback(() => {
+    setShowMobileMenu(false);
+    setShowNotif((v) => !v);
+  }, []);
   const closeNotif = useCallback(() => setShowNotif(false), []);
+  const closeMobileMenu = useCallback(() => setShowMobileMenu(false), []);
+  const toggleMobileMenu = useCallback(() => {
+    closeNotif();
+    setShowMobileMenu((v) => !v);
+  }, [closeNotif]);
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+    closeNotif();
+    closeMobileMenu();
+  }, [closeMobileMenu, closeNotif, signOut]);
 
-  // 드롭다운이 열린 동안 바깥 영역을 클릭하면 닫는다.
+  // 알림 드롭다운: 바깥 영역 클릭 시 닫기
   useEffect(() => {
-    if (!showNotif) {
-      return;
-    }
+    if (!showNotif) return undefined;
 
     const handlePointerDown = (event) => {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
@@ -29,37 +49,46 @@ export default function Header() {
     };
 
     document.addEventListener("mousedown", handlePointerDown);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-    };
+    return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [showNotif, closeNotif]);
-  const handleSignOut = useCallback(async () => {
-    await signOut();
+
+  // 모바일 메뉴: Esc 키로 닫기
+  useEffect(() => {
+    if (!showMobileMenu) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeMobileMenu();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [closeMobileMenu, showMobileMenu]);
+
+  // 경로 변경 시 메뉴/드롭다운 닫기
+  useEffect(() => {
+    closeMobileMenu();
     closeNotif();
-  }, [closeNotif, signOut]);
+  }, [closeMobileMenu, closeNotif, location.pathname]);
 
   const profileImage = user?.photo_url || user?.photoURL || "";
   const profileLabel =
     user?.display_name || user?.displayName || user?.github_login || "프로필";
 
   return (
-    <header className="header">
+    <header className={`header${showMobileMenu ? " is-mobile-menu-open" : ""}`}>
       <div className="header-inner container">
         <Link to="/" className="header-logo">
           HalleMalle
         </Link>
 
         <nav className="header-nav">
-          <Link to="/togethers" className="nav-link">
-            프로젝트
-          </Link>
-          <Link to="/references" className="nav-link">
-            참고주제
-          </Link>
-          <Link to="/memoirs" className="nav-link">
-            회고록
-          </Link>
+          {NAV_ITEMS.map((item) => (
+            <Link key={item.to} to={item.to} className="nav-link">
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
         <div className="header-actions">
@@ -120,12 +149,122 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <Link to="/login" className="btn-primary-sm">
+            <Link to="/login" className="btn-primary-sm header-login-btn">
               로그인
             </Link>
           )}
+          <button
+            type="button"
+            className="mobile-menu-btn"
+            onClick={toggleMobileMenu}
+            aria-label={showMobileMenu ? "모바일 메뉴 닫기" : "모바일 메뉴 열기"}
+            aria-expanded={showMobileMenu}
+            aria-controls="mobile-navigation-drawer"
+          >
+            {showMobileMenu ? (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            ) : (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 6h16" />
+                <path d="M4 12h16" />
+                <path d="M4 18h16" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
+
+      {showMobileMenu && (
+        <div className="mobile-menu-layer">
+          <button
+            type="button"
+            className="mobile-menu-backdrop"
+            onClick={closeMobileMenu}
+            aria-label="모바일 메뉴 닫기"
+          />
+          <aside
+            id="mobile-navigation-drawer"
+            className="mobile-menu-drawer"
+            aria-label="모바일 네비게이션"
+          >
+            <div className="mobile-menu-header">
+              <span className="mobile-menu-title">메뉴</span>
+              <button
+                type="button"
+                className="action-btn"
+                onClick={closeMobileMenu}
+                aria-label="모바일 메뉴 닫기"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <nav className="mobile-menu-nav">
+              {NAV_ITEMS.map((item) => {
+                const isActive = location.pathname.startsWith(item.to);
+
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`mobile-menu-link${isActive ? " is-active" : ""}`}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {isAuthenticated ? (
+              <button
+                type="button"
+                className="mobile-logout-btn"
+                onClick={handleSignOut}
+              >
+                로그아웃
+              </button>
+            ) : (
+              <Link to="/login" className="mobile-login-btn">
+                로그인
+              </Link>
+            )}
+          </aside>
+        </div>
+      )}
     </header>
   );
 }
