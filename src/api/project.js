@@ -14,6 +14,7 @@ import {
   limit,
   startAfter,
   serverTimestamp,
+  increment, // 조회수 증가 연산을 위해 추가
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -93,7 +94,6 @@ export async function createProject(formData, userId) {
   const finalUserId = userId || formData.creatorId || formData.created_by || "";
 
   // 썸네일 처리
-  // ProjectForm은 thumbnail 키 하나로만 File 인스턴스를 전달합니다.
   let thumbnailUrl = "";
   if (formData.thumbnail instanceof File) {
     try {
@@ -105,7 +105,6 @@ export async function createProject(formData, userId) {
     thumbnailUrl = formData.thumbnail;
   }
 
-  // 🛠 [보안규칙 정밀 대응] isValidTogetherCreate 검증 스키마 일치화
   const togetherData = {
     post_id: postId,
     created_by: finalUserId,
@@ -117,8 +116,8 @@ export async function createProject(formData, userId) {
     current_member_count: Number(formData.currentMemberCount || 0), // int (>=0)
     contact_type: formData.contactType || "email", // 'email' | 'kakao' | 'link' | 'other'
     contact_value: formData.contactValue || "",
-    view_count: 0, // 규칙 필수: 반드시 정확히 0 이여야 함
-    is_private: Boolean(formData.isPrivate || false), // bool
+    view_count: 0,
+    is_private: Boolean(formData.isPrivate || false),
     thumbnail_url: thumbnailUrl,
     recruitment_start:
       formData.recruitmentStart ||
@@ -130,43 +129,36 @@ export async function createProject(formData, userId) {
       formData.recruitment_end ||
       formData.endDate ||
       "",
-    created_at: serverTimestamp(), // 규칙 필수: request.time과 동치
-    updated_at: serverTimestamp(), // 규칙 필수: request.time과 동치
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
   };
 
-  // 1. 메인 프로젝트 다큐먼트 먼저 생성
   await setDoc(togetherRef, togetherData);
 
-  // 2. 역할군 생성 (together_roles 규칙 통과 보완)
-  // ProjectForm은 positions 키로 역할 배열을 전달합니다.
   const rolesData = formData.positions || formData.roles || [];
   if (Array.isArray(rolesData) && rolesData.length > 0) {
     for (const r of rolesData) {
       const rRef = doc(collection(db, TOGETHER_ROLES_COL));
       await setDoc(rRef, {
         post_id: postId,
-        role_type: r.role, // 규칙 필수: isValidRole 검증 통과용 키값
-        headcount: Number(r.total || 1), // 규칙 필수: int형 >= 1
-        filled_count: 0, // 규칙 필수: 무조건 0으로 시작해야 생성 허용됨
+        role_type: r.role,
+        headcount: Number(r.total || 1),
+        filled_count: 0,
       });
     }
   }
 
-  // 3. 기술 스택 생성 (together_tech_stack 규칙 통과 보완)
   if (formData.techStack && Array.isArray(formData.techStack)) {
     for (const tag of formData.techStack) {
       if (!tag || tag.trim() === "") continue;
       const tRef = doc(collection(db, TECH_STACK_COL));
       await setDoc(tRef, {
         post_id: postId,
-        tag: tag.trim(), // 규칙 필수: NonEmptyString 검증
+        tag: tag.trim(),
       });
     }
   }
 
-  // 4. 첨부 기획 문서 생성 (planning_documents 규칙 통과 보완)
-  // ProjectForm은 attachments 배열의 각 항목을 { name, file, url, visibility } 형태로 전달합니다.
-  // visibility 값은 항목별로 다를 수 있으므로 formData.attachmentVisibility 대신 file.visibility를 사용합니다.
   if (formData.attachments && Array.isArray(formData.attachments)) {
     for (const attachment of formData.attachments) {
       let fileUrl = "";
@@ -189,7 +181,6 @@ export async function createProject(formData, userId) {
       if (!fileUrl) continue;
 
       const dRef = doc(collection(db, DOCUMENTS_COL));
-      // 규칙 필수: visibility는 'public' 또는 'approved_only' 만 허용
       const dbVisibility =
         attachment.visibility === "approved_only" ? "approved_only" : "public";
 
@@ -230,7 +221,9 @@ export async function updateProject(postId, data, uid) {
   for (const d of rolesSnap.docs) {
     await deleteDoc(d.ref);
   }
-  for (const pos of data.positions) {
+
+  const targetPositions = data.positions || data.roles || [];
+  for (const pos of targetPositions) {
     const rRef = doc(collection(db, TOGETHER_ROLES_COL));
     await setDoc(rRef, {
       post_id: postId,
@@ -260,12 +253,15 @@ export async function updateProject(postId, data, uid) {
   for (const d of docsSnap.docs) {
     await deleteDoc(d.ref);
   }
-  for (const docItem of data.attachments) {
+
+  const targetAttachments = data.attachments || data.documents || [];
+  for (const docItem of targetAttachments) {
     const dRef = doc(collection(db, DOCUMENTS_COL));
     await setDoc(dRef, {
       post_id: postId,
       file_name: docItem.name,
       file_url: docItem.url || "",
+      visibility: docItem.visibility || "public",
     });
   }
 
@@ -293,11 +289,9 @@ export async function getProjectById(postId) {
     const rolesSnap = await getDocs(
       query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
     );
-
     const techSnap = await getDocs(
       query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
     );
-
     const docsSnap = await getDocs(
       query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
     );
@@ -311,14 +305,33 @@ export async function getProjectById(postId) {
       };
     });
 
+    const attachmentsData = docsSnap.docs.map((d) => {
+      const item = d.data();
+      return {
+        name: item.file_name,
+        url: item.file_url,
+        visibility: item.visibility || "public",
+      };
+    });
+
+    // ProjectForm 컴포넌트의 주입 키 스펙과 완벽 싱크 정제
     return {
       ...pData,
       post_id: postId,
       status: pData.recruitment_status,
-      stage: pData.participation_stage,
-      positions: mappedRoles,
+      stage: toFormStage(pData.participation_stage),
+      totalHeadcount: pData.total_headcount,
+      currentMemberCount: pData.current_member_count,
+      contactType: pData.contact_type,
+      contactValue: pData.contact_value,
+      isPrivate: pData.is_private,
+      recruitmentStart: pData.recruitment_start || "",
+      recruitmentEnd: pData.recruitment_end || "",
+      thumbnail: pData.thumbnail_url || "",
+      roles: mappedRoles,
       techStack: techSnap.docs.map((d) => d.data().tag),
-      documents: docsSnap.docs.map((d) => d.data()),
+      attachments: attachmentsData,
+      attachmentVisibility: "public",
     };
   } catch (error) {
     console.error("getProjectById 내부에서 에러 발생:", error);
@@ -327,87 +340,110 @@ export async function getProjectById(postId) {
 }
 
 /**
- * 3. 프로젝트 상세 조회 (작성자 유저 프로필 정보 포함)
+ * 프로젝트 조회수만 순수하게 1 증가시키는 함수
+ */
+export async function incrementProjectView(postId) {
+  if (!postId) return;
+  try {
+    const docRef = doc(db, TOGETHERS_COL, postId);
+    await updateDoc(docRef, {
+      view_count: increment(1),
+    });
+  } catch (err) {
+    console.warn("조회수 증가 실패:", err.message);
+  }
+}
+
+/**
+ * 3. 프로젝트 상세 조회 (작성자 유저 프로필 정보 포함 + 조회수 증가 연산 포함)
  */
 export async function getProjectDetail(postId) {
-  const docRef = doc(db, TOGETHERS_COL, postId);
-  const docSnap = await getDoc(docRef);
+  if (!postId) return null;
 
-  if (!docSnap.exists()) {
+  try {
+    const docRef = doc(db, TOGETHERS_COL, postId);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      return null;
+    }
+
+    const pData = docSnap.data();
+
+    // 작성자 유저 정보(users 컬렉션) 단건 비동기 조회
+    let creatorInfo = null;
+    if (pData.created_by) {
+      try {
+        const userSnap = await getDoc(doc(db, "users", pData.created_by));
+        if (userSnap.exists()) {
+          const uData = userSnap.data();
+          creatorInfo = {
+            uid: pData.created_by,
+            github_login: uData.github_login || "",
+            display_name: uData.display_name || "",
+            photo_url: uData.photo_url || "",
+            tier: uData.tier || "bronze",
+            tier_detail: uData.tier_detail || 1,
+            collaboration_score: uData.collaboration_score || 10,
+          };
+        }
+      } catch (err) {
+        console.warn("작성자 정보 로드 실패:", err.message);
+      }
+    }
+
+    const rolesSnap = await getDocs(
+      query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
+    );
+    const techSnap = await getDocs(
+      query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
+    );
+    const docsSnap = await getDocs(
+      query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
+    );
+
+    const mappedRoles = rolesSnap.docs.map((r) => {
+      const d = r.data();
+      return {
+        role: d.role_type,
+        total: d.headcount,
+        current: d.filled_count || 0,
+      };
+    });
+
+    const attachmentsData = docsSnap.docs.map((docUuid) => {
+      const d = docUuid.data();
+      return {
+        name: d.file_name,
+        url: d.file_url,
+        visibility: d.visibility || "public",
+      };
+    });
+
+    return {
+      ...pData,
+      post_id: postId,
+      status: pData.recruitment_status,
+      stage: toFormStage(pData.participation_stage),
+      totalHeadcount: pData.total_headcount,
+      currentMemberCount: pData.current_member_count,
+      contactType: pData.contact_type,
+      contactValue: pData.contact_value,
+      isPrivate: pData.is_private,
+      recruitmentStart: pData.recruitment_start || "",
+      recruitmentEnd: pData.recruitment_end || "",
+      thumbnail: pData.thumbnail_url || "",
+      roles: mappedRoles,
+      techStack: techSnap.docs.map((t) => t.data().tag),
+      attachments: attachmentsData,
+      attachmentVisibility: "public",
+      creator: creatorInfo,
+    };
+  } catch (error) {
+    console.error("getProjectDetail 내부 에러:", error);
     return null;
   }
-
-  const pData = docSnap.data();
-
-  // 작성자 유저 정보(users 컬렉션) 단건 비동기 조회
-  let creatorInfo = null;
-  if (pData.created_by) {
-    try {
-      const userSnap = await getDoc(doc(db, "users", pData.created_by));
-      if (userSnap.exists()) {
-        const uData = userSnap.data();
-        creatorInfo = {
-          uid: pData.created_by,
-          github_login: uData.github_login || "",
-          display_name: uData.display_name || "",
-          photo_url: uData.photo_url || "",
-          tier: uData.tier || "bronze",
-          tier_detail: uData.tier_detail || 1,
-          collaboration_score: uData.collaboration_score || 10,
-        };
-      }
-    } catch (err) {
-      console.warn("작성자 정보 로드 실패:", err.message);
-    }
-  }
-
-  // (하위 컬렉션 조회부 - 기존과 동일)
-  const rolesSnap = await getDocs(
-    query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
-  );
-  const techSnap = await getDocs(
-    query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
-  );
-  const docsSnap = await getDocs(
-    query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
-  );
-
-  const mappedRoles = rolesSnap.docs.map((r) => {
-    const d = r.data();
-    return { role: d.role_type, total: d.headcount, current: d.filled_count };
-  });
-
-  const attachmentsData = docsSnap.docs.map((docUuid) => {
-    const d = docUuid.data();
-    return {
-      name: d.file_name,
-      url: d.file_url,
-      visibility: d.visibility || "public",
-    };
-  });
-
-  return {
-    ...pData,
-    post_id: postId,
-    status: pData.recruitment_status,
-    stage: toFormStage(pData.participation_stage),
-    totalHeadcount: pData.total_headcount,
-    currentMemberCount: pData.current_member_count,
-    contactType: pData.contact_type,
-    contactValue: pData.contact_value,
-    isPrivate: pData.is_private,
-    recruitmentStart: pData.recruitment_start || "",
-    recruitmentEnd: pData.recruitment_end || "",
-    thumbnail: pData.thumbnail_url || "",
-    roles: mappedRoles,
-    techStack: techSnap.docs.map((t) => t.data().tag),
-    attachments: attachmentsData,
-    attachmentVisibility: "public",
-
-    // 화면단에 넘겨줄 작성자 오브젝트 추가
-    creator: creatorInfo,
-  };
 }
+
 /**
  * 4. 프로젝트 목록 전체 조회
  */
@@ -506,10 +542,8 @@ export async function deleteProject(postId) {
   if (!postId) return false;
 
   try {
-    // 1. 메인 프로젝트 다큐먼트 참조
     const togetherRef = doc(db, TOGETHERS_COL, postId);
 
-    // 2. 프로젝트 내부 서브 컬렉션 조회 (역할, 기술스택, 문서)
     const rolesSnap = await getDocs(
       query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
     );
@@ -520,20 +554,16 @@ export async function deleteProject(postId) {
       query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
     );
 
-    // 3. 해당 프로젝트에 지원했던 모든 지원서(applicants) 조회
-    // ('applicants' 컬렉션 문자열 상수가 project.js에 없다면 직접 "applicants"로 매핑)
     const applicantsSnap = await getDocs(
       query(collection(db, "applicants"), where("post_id", "==", postId))
     );
 
-    // 4. 각 지원서에 매핑되어 있던 지원자 첨부파일(applicant_attachments) 조회 및 담기
     const attachmentPromises = [];
     const applicantDocRefs = [];
 
     for (const appDoc of applicantsSnap.docs) {
-      applicantDocRefs.push(deleteDoc(appDoc.ref)); // 지원서 삭제 등록
+      applicantDocRefs.push(deleteDoc(appDoc.ref));
 
-      // 각 지원서 ID에 묶인 첨부파일 쿼리
       const appAttachSnap = await getDocs(
         query(
           collection(db, "applicant_attachments"),
@@ -541,11 +571,10 @@ export async function deleteProject(postId) {
         )
       );
       appAttachSnap.docs.forEach((attachDoc) => {
-        attachmentPromises.push(deleteDoc(attachDoc.ref)); // 지원자 첨부파일 삭제 등록
+        attachmentPromises.push(deleteDoc(attachDoc.ref));
       });
     }
 
-    // 5. 모든 하위/연관 데이터 병렬 일괄 삭제 실행
     const deletePromises = [
       ...rolesSnap.docs.map((d) => deleteDoc(d.ref)),
       ...techSnap.docs.map((d) => deleteDoc(d.ref)),
@@ -554,8 +583,6 @@ export async function deleteProject(postId) {
       ...attachmentPromises,
     ];
     await Promise.all(deletePromises);
-
-    // 6. 최종 메인 프로젝트 다큐먼트 삭제
     await deleteDoc(togetherRef);
 
     return true;

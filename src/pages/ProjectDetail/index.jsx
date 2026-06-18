@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getProjectDetail } from "@/api/project";
+import { getProjectDetail, incrementProjectView } from "@/api/project";
 import { useAuth } from "@/contexts/AuthContext";
 
 import ApplyModal from "@/components/ApplyModal";
@@ -64,20 +64,31 @@ export default function ProjectDetail() {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // 1) 로그인 유저 상태 관찰
+  // 로그인 유저 상태 관찰
   useEffect(() => {
     setCurrentUser(user);
   }, [user]);
 
-  // 2) Firestore 단건 데이터 로드 (Tech Stack 포함)
+  // 조회수
+  useEffect(() => {
+    if (!id) return;
+
+    // StrictMode나 리렌더링으로 인해 이 블록이 여러 번 실행되는 것을 방지하기 위한 변수
+    let isFired = false;
+
+    if (!isFired) {
+      incrementProjectView(id);
+      isFired = true;
+    }
+  }, [id]);
+
+  // Firestore 단건 데이터 로드 (Tech Stack 포함)
   useEffect(() => {
     if (!id) return;
 
     async function fetchProjectData() {
       try {
         setLoading(true);
-        // getProject 함수가 내부에 together_tech_stack 서브컬렉션을
-        // 가져와 project.techStack 배열로 맵핑해 반환하고 있습니다.
         const data = await getProjectDetail(id);
         setProject(data);
       } catch (err) {
