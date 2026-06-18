@@ -114,6 +114,13 @@
   }
 }
 
+// 헤더 우측 로그인 버튼은 모바일에서 숨기고 드로어 하단으로 이동한다.
+.header-login-btn {
+  @include respond-to($breakpoint-md) {
+    display: none;
+  }
+}
+
 .logout-btn {
   @include button-base;
   color: $text-secondary;
@@ -270,7 +277,8 @@
   }
 }
 
-.mobile-logout-btn {
+.mobile-logout-btn,
+.mobile-login-btn {
   @include button-base;
   width: 100%;
   justify-content: center;

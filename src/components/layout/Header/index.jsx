@@ -77,9 +77,7 @@ export default function Header() {
     user?.display_name || user?.displayName || user?.github_login || "프로필";
 
   return (
-    <header
-      className={`header${showMobileMenu ? " is-mobile-menu-open" : ""}`}
-    >
+    <header className={`header${showMobileMenu ? " is-mobile-menu-open" : ""}`}>
       <div className="header-inner container">
         <Link to="/" className="header-logo">
           HalleMalle
@@ -149,55 +147,55 @@ export default function Header() {
               >
                 로그아웃
               </button>
-              <button
-                type="button"
-                className="mobile-menu-btn"
-                onClick={toggleMobileMenu}
-                aria-label={showMobileMenu ? "모바일 메뉴 닫기" : "모바일 메뉴 열기"}
-                aria-expanded={showMobileMenu}
-                aria-controls="mobile-navigation-drawer"
-              >
-                {showMobileMenu ? (
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </svg>
-                ) : (
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M4 6h16" />
-                    <path d="M4 12h16" />
-                    <path d="M4 18h16" />
-                  </svg>
-                )}
-              </button>
             </>
           ) : (
-            <Link to="/login" className="btn-primary-sm">
+            <Link to="/login" className="btn-primary-sm header-login-btn">
               로그인
             </Link>
           )}
+          <button
+            type="button"
+            className="mobile-menu-btn"
+            onClick={toggleMobileMenu}
+            aria-label={showMobileMenu ? "모바일 메뉴 닫기" : "모바일 메뉴 열기"}
+            aria-expanded={showMobileMenu}
+            aria-controls="mobile-navigation-drawer"
+          >
+            {showMobileMenu ? (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            ) : (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 6h16" />
+                <path d="M4 12h16" />
+                <path d="M4 18h16" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
-      {isAuthenticated && showMobileMenu && (
+      {showMobileMenu && (
         <div className="mobile-menu-layer">
           <button
             type="button"
@@ -251,13 +249,19 @@ export default function Header() {
               })}
             </nav>
 
-            <button
-              type="button"
-              className="mobile-logout-btn"
-              onClick={handleSignOut}
-            >
-              로그아웃
-            </button>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                className="mobile-logout-btn"
+                onClick={handleSignOut}
+              >
+                로그아웃
+              </button>
+            ) : (
+              <Link to="/login" className="mobile-login-btn">
+                로그인
+              </Link>
+            )}
           </aside>
         </div>
       )}
