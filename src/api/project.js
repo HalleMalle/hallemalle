@@ -275,9 +275,6 @@ export async function updateProject(postId, data, uid) {
 /**
  * 단일 프로젝트 상세 조회 (Form 채우기용)
  */
-/**
- * 단일 프로젝트 상세 조회 (Form 채우기용)
- */
 export async function getProjectById(postId) {
   if (!postId) {
     return null;
@@ -500,4 +497,43 @@ export async function getProjectList({
     lastDoc: nextLastDoc,
     hasMore: snap.docs.length === PAGE_SIZE,
   };
+}
+
+/**
+ * 5. 프로젝트 삭제 (서브 컬렉션 연달아 삭제)
+ */
+export async function deleteProject(postId) {
+  if (!postId) return false;
+
+  try {
+    // 1. 메인 프로젝트 다큐먼트 참조
+    const togetherRef = doc(db, TOGETHERS_COL, postId);
+
+    // 2. 연관된 서브 컬렉션들 쿼리
+    const rolesSnap = await getDocs(
+      query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
+    );
+    const techSnap = await getDocs(
+      query(collection(db, TECH_STACK_COL), where("post_id", "==", postId))
+    );
+    const docsSnap = await getDocs(
+      query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
+    );
+
+    // 3. 서브 컬렉션 데이터들 병렬 삭제
+    const deletePromises = [
+      ...rolesSnap.docs.map((d) => deleteDoc(d.ref)),
+      ...techSnap.docs.map((d) => deleteDoc(d.ref)),
+      ...docsSnap.docs.map((d) => deleteDoc(d.ref)),
+    ];
+    await Promise.all(deletePromises);
+
+    // 4. 메인 프로젝트 다큐먼트 삭제
+    await deleteDoc(togetherRef);
+
+    return true;
+  } catch (error) {
+    console.error("deleteProject API 에러 발생:", error);
+    throw error;
+  }
 }
