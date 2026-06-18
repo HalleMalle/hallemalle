@@ -500,7 +500,7 @@ export async function getProjectList({
 }
 
 /**
- * 5. 프로젝트 삭제 (서브 컬렉션 연달아 삭제)
+ * 5. 프로젝트 삭제 (관련 서브 컬렉션 및 모든 지원 내역까지 연쇄 삭제)
  */
 export async function deleteProject(postId) {
   if (!postId) return false;
@@ -509,7 +509,7 @@ export async function deleteProject(postId) {
     // 1. 메인 프로젝트 다큐먼트 참조
     const togetherRef = doc(db, TOGETHERS_COL, postId);
 
-    // 2. 연관된 서브 컬렉션들 쿼리
+    // 2. 프로젝트 내부 서브 컬렉션 조회 (역할, 기술스택, 문서)
     const rolesSnap = await getDocs(
       query(collection(db, TOGETHER_ROLES_COL), where("post_id", "==", postId))
     );
@@ -520,20 +520,47 @@ export async function deleteProject(postId) {
       query(collection(db, DOCUMENTS_COL), where("post_id", "==", postId))
     );
 
-    // 3. 서브 컬렉션 데이터들 병렬 삭제
+    // 3. 해당 프로젝트에 지원했던 모든 지원서(applicants) 조회
+    // ('applicants' 컬렉션 문자열 상수가 project.js에 없다면 직접 "applicants"로 매핑)
+    const applicantsSnap = await getDocs(
+      query(collection(db, "applicants"), where("post_id", "==", postId))
+    );
+
+    // 4. 각 지원서에 매핑되어 있던 지원자 첨부파일(applicant_attachments) 조회 및 담기
+    const attachmentPromises = [];
+    const applicantDocRefs = [];
+
+    for (const appDoc of applicantsSnap.docs) {
+      applicantDocRefs.push(deleteDoc(appDoc.ref)); // 지원서 삭제 등록
+
+      // 각 지원서 ID에 묶인 첨부파일 쿼리
+      const appAttachSnap = await getDocs(
+        query(
+          collection(db, "applicant_attachments"),
+          where("applicant_id", "==", appDoc.id)
+        )
+      );
+      appAttachSnap.docs.forEach((attachDoc) => {
+        attachmentPromises.push(deleteDoc(attachDoc.ref)); // 지원자 첨부파일 삭제 등록
+      });
+    }
+
+    // 5. 모든 하위/연관 데이터 병렬 일괄 삭제 실행
     const deletePromises = [
       ...rolesSnap.docs.map((d) => deleteDoc(d.ref)),
       ...techSnap.docs.map((d) => deleteDoc(d.ref)),
       ...docsSnap.docs.map((d) => deleteDoc(d.ref)),
+      ...applicantDocRefs,
+      ...attachmentPromises,
     ];
     await Promise.all(deletePromises);
 
-    // 4. 메인 프로젝트 다큐먼트 삭제
+    // 6. 최종 메인 프로젝트 다큐먼트 삭제
     await deleteDoc(togetherRef);
 
     return true;
   } catch (error) {
-    console.error("deleteProject API 에러 발생:", error);
+    console.error("deleteProject 연쇄 삭제 중 에러 발생:", error);
     throw error;
   }
 }
