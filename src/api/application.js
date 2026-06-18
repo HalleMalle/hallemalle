@@ -285,15 +285,27 @@ export async function getMyTogethers(uid) {
   const togetherList = snap.docs.map((d) => ({ post_id: d.id, ...d.data() }));
 
   // 2. 각 프로젝트별 신청자 목록을 병렬로 조회하여 결합 (하이드레이션 포함)
-  return Promise.all(
+  const results = await Promise.all(
     togetherList.map(async (together) => {
-      const applicantsForThisPost = await getApplicantsByPost(together.post_id);
-      return {
-        ...together,
-        applicants: applicantsForThisPost, // 신청자 배열 주입
-      };
+      try {
+        const applicantsForThisPost = await getApplicantsByPost(
+          together.post_id
+        );
+        return {
+          ...together,
+          applicants: applicantsForThisPost, // 신청자 배열 주입
+        };
+      } catch (err) {
+        console.warn(
+          `프로젝트(${together.post_id}) 신청자 로드 실패:`,
+          err.message
+        );
+        return null; // 오류 발생 시 안전하게 null 리턴 후 필터링
+      }
     })
   );
+
+  return results.filter(Boolean);
 }
 
 /**
@@ -309,20 +321,40 @@ export async function getMyApplications(uid) {
   const applicationList = [];
 
   for (const docSnap of snap.docs) {
-    const applicantData = await hydrateApplicant(docSnap);
+    try {
+      const applicantData = await hydrateApplicant(docSnap);
 
-    let togetherData = null;
-    if (applicantData.post_id) {
-      const tSnap = await getDoc(doc(db, TOGETHERS_COL, applicantData.post_id));
-      if (tSnap.exists()) {
-        togetherData = { post_id: tSnap.id, ...tSnap.data() };
+      let togetherData = null;
+      if (applicantData.post_id) {
+        const tSnap = await getDoc(
+          doc(db, TOGETHERS_COL, applicantData.post_id)
+        );
+        if (tSnap.exists()) {
+          togetherData = { post_id: tSnap.id, ...tSnap.data() };
+        }
       }
-    }
 
-    applicationList.push({
-      ...applicantData,
-      together: togetherData,
-    });
+      // 프로젝트가 이미 삭제되어 togetherData가 null인 경우,
+      // 지원서 목록에 포함하지 않고 건너뜁니다. (공중분해 데이터 방어)
+      if (!togetherData) {
+        console.warn(
+          `이미 삭제된 프로젝트(${applicantData.post_id})에 대한 지원서 번호(${docSnap.id})는 제외됩니다.`
+        );
+        continue;
+      }
+
+      applicationList.push({
+        ...applicantData,
+        together: togetherData,
+      });
+    } catch (err) {
+      console.error(
+        `지원서 데이터 가공 중 에러 발생 (ID: ${docSnap.id}):`,
+        err
+      );
+      // 단건 에러가 나더라도 전체 페이지가 뻗지 않도록 무시하고 다음 데이터 처리
+      continue;
+    }
   }
 
   return applicationList;

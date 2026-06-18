@@ -147,14 +147,18 @@ export default function ProjectForm({
     [selectedRoles, roleCounts]
   );
 
+  const docsValid = planningDocs
+    ? planningDocs.filter(
+        ({ file }) => (file?.size / 1024 / 1024).toFixed(1) >= 1
+      )?.length == 0
+    : true;
+
   const isValid =
     title.trim() !== "" &&
     description.trim() !== "" &&
     selectedRoles.size > 0 &&
     totalSlots >= 2 &&
-    planningDocs.filter(({ file }) => (file.size / 1024 / 1024).toFixed(1) >= 1)
-      ?.length == 0;
-
+    docsValid;
   const handleDatePickerOpen = (ref) => {
     ref.current?.showPicker();
   };
@@ -402,7 +406,7 @@ export default function ProjectForm({
               const label =
                 ROLE_OPTIONS.find((r) => r.value === role)?.label || role;
               return (
-                <div key={role} className="role-count-row">
+                <div key={`${role}--${label}`} className="role-count-row">
                   <span className="role-count-label">{label}</span>
                   <div className="select-wrap select-wrap--sm">
                     <select
