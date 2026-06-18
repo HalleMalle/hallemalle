@@ -40,6 +40,11 @@ const GITHUB_MANIFEST_PATHS = [
   "serverless.yml",
   "serverless.yaml",
   "template.yaml",
+  "app.json",
+  "app.config.js",
+  "app.config.ts",
+  "metro.config.js",
+  "react-native.config.js",
 ];
 const GITHUB_IGNORED_PATH_SEGMENTS = new Set([
   "node_modules",
@@ -250,12 +255,17 @@ const FRAMEWORK_DETECTORS = [
   },
   {
     name: "React Native",
-    weight: 10,
+    weight: 6,
+    requiresStrongPathMatch: true,
     patterns: [
-      /(^|\/)package\.json$/,
+      /(^|\/)metro\.config\.(js|cjs|mjs|ts)$/,
+      /(^|\/)react-native\.config\.(js|cjs|mjs|ts)$/,
       /(^|\/)app\.json$/,
       /(^|\/)app\.config\.(js|ts)$/,
       /\.(ios|android)\.(js|jsx|ts|tsx)$/,
+      /(^|\/)index\.(ios|android)\.(js|jsx|ts|tsx)$/,
+      /(^|\/)android\/app\/src\/main\/androidmanifest\.xml$/,
+      /(^|\/)ios\/[^/]+\.xcodeproj\//,
     ],
     tokens: ["react-native", "@react-native/", "expo", "metro"],
   },
@@ -695,6 +705,10 @@ function analyzeCommitFileFrameworks(commitDetails) {
         const matchedByPath = detector.patterns.some((pattern) => pattern.test(normalizedFilename));
         const matchedByPatch = detector.tokens.some((token) => patch.includes(token));
 
+        if (detector.requiresStrongPathMatch && !matchedByPath) {
+          return;
+        }
+
         if (!matchedByPath && !matchedByPatch) {
           return;
         }
@@ -757,6 +771,10 @@ async function fetchRepositoryManifestFrameworks(repositories, accessToken) {
         FRAMEWORK_DETECTORS.forEach((detector) => {
           const matchedByPath = detector.patterns.some((pattern) => pattern.test(normalizedPath));
           const matchedByContent = detector.tokens.some((token) => normalizedContent.includes(token));
+
+          if (detector.requiresStrongPathMatch && !matchedByPath) {
+            return;
+          }
 
           if (!matchedByPath && !matchedByContent) {
             return;
