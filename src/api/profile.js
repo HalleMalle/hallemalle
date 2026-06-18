@@ -30,6 +30,21 @@ const GITHUB_MANIFEST_PATHS = [
   "pom.xml",
   "build.gradle",
   "build.gradle.kts",
+  "go.mod",
+  "pubspec.yaml",
+  "Dockerfile",
+  "docker-compose.yml",
+  "docker-compose.yaml",
+  "firebase.json",
+  ".firebaserc",
+  "serverless.yml",
+  "serverless.yaml",
+  "template.yaml",
+  "app.json",
+  "app.config.js",
+  "app.config.ts",
+  "metro.config.js",
+  "react-native.config.js",
 ];
 const GITHUB_IGNORED_PATH_SEGMENTS = new Set([
   "node_modules",
@@ -123,7 +138,7 @@ const GITHUB_LANGUAGE_BY_EXTENSION = {
 };
 const FRAMEWORK_DETECTORS = [
   {
-    name: "React",
+    name: "React.js",
     weight: 8,
     patterns: [
       /(^|\/)package\.json$/,
@@ -142,6 +157,27 @@ const FRAMEWORK_DETECTORS = [
       /(^|\/)pages\/.*\.(js|jsx|ts|tsx)$/,
     ],
     tokens: ["next"],
+  },
+  {
+    name: "Vue.js",
+    weight: 8,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /\.vue$/,
+      /(^|\/)src\/components\//,
+    ],
+    tokens: ["vue", "@vue/cli", "@vitejs/plugin-vue"],
+  },
+  {
+    name: "Nuxt.js",
+    weight: 9,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)nuxt\.config\.(js|mjs|ts)$/,
+      /(^|\/)pages\/.*\.vue$/,
+      /(^|\/)app\.vue$/,
+    ],
+    tokens: ["nuxt", "@nuxt/"],
   },
   {
     name: "Node.js",
@@ -164,7 +200,17 @@ const FRAMEWORK_DETECTORS = [
     tokens: ["express"],
   },
   {
-    name: "Spring Boot",
+    name: "NestJS",
+    weight: 9,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)nest-cli\.json$/,
+      /(^|\/)src\/main\.(js|ts)$/,
+    ],
+    tokens: ["@nestjs/core", "@nestjs/common", "@nestjs/platform-express", "nestjs"],
+  },
+  {
+    name: "SpringBoot",
     weight: 10,
     patterns: [
       /(^|\/)pom\.xml$/,
@@ -195,6 +241,127 @@ const FRAMEWORK_DETECTORS = [
       /(^|\/)settings\.py$/,
     ],
     tokens: ["django", "djangorestframework"],
+  },
+  {
+    name: "Flutter",
+    weight: 10,
+    patterns: [
+      /(^|\/)pubspec\.yaml$/,
+      /(^|\/)lib\/.*\.dart$/,
+      /(^|\/)android\/app\/build\.gradle$/,
+      /(^|\/)ios\/runner\//,
+    ],
+    tokens: ["flutter", "flutter_test", "cupertino_icons"],
+  },
+  {
+    name: "React Native",
+    weight: 6,
+    requiresStrongPathMatch: true,
+    patterns: [
+      /(^|\/)metro\.config\.(js|cjs|mjs|ts)$/,
+      /(^|\/)react-native\.config\.(js|cjs|mjs|ts)$/,
+      /(^|\/)app\.json$/,
+      /(^|\/)app\.config\.(js|ts)$/,
+      /\.(ios|android)\.(js|jsx|ts|tsx)$/,
+      /(^|\/)index\.(ios|android)\.(js|jsx|ts|tsx)$/,
+      /(^|\/)android\/app\/src\/main\/androidmanifest\.xml$/,
+      /(^|\/)ios\/[^/]+\.xcodeproj\//,
+    ],
+    tokens: ["react-native", "@react-native/", "expo", "metro"],
+  },
+  {
+    name: "MySQL",
+    weight: 7,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /(^|\/)pom\.xml$/,
+      /(^|\/)build\.gradle(\.kts)?$/,
+      /\.sql$/,
+    ],
+    tokens: ["mysql", "mysql2", "pymysql", "mysqlclient", "mysql-connector", "mariadb"],
+  },
+  {
+    name: "PostgreSQL",
+    weight: 7,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /(^|\/)pom\.xml$/,
+      /(^|\/)build\.gradle(\.kts)?$/,
+      /\.sql$/,
+    ],
+    tokens: ["postgresql", "postgres", "psycopg2", "asyncpg", "pg-native", "org.postgresql"],
+  },
+  {
+    name: "MongoDB",
+    weight: 7,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /(^|\/)pom\.xml$/,
+      /(^|\/)build\.gradle(\.kts)?$/,
+    ],
+    tokens: ["mongodb", "mongoose", "pymongo", "motor", "mongoengine"],
+  },
+  {
+    name: "Redis",
+    weight: 7,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /(^|\/)pom\.xml$/,
+      /(^|\/)build\.gradle(\.kts)?$/,
+    ],
+    tokens: ["redis", "ioredis", "lettuce", "jedis", "redisson"],
+  },
+  {
+    name: "AWS",
+    weight: 7,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)requirements\.txt$/,
+      /(^|\/)pyproject\.toml$/,
+      /(^|\/)pom\.xml$/,
+      /(^|\/)build\.gradle(\.kts)?$/,
+      /(^|\/)serverless\.ya?ml$/,
+      /(^|\/)template\.ya?ml$/,
+    ],
+    tokens: ["aws-sdk", "@aws-sdk/", "boto3", "botocore", "software.amazon.awssdk", "amazonaws", "serverless"],
+  },
+  {
+    name: "Docker",
+    weight: 8,
+    patterns: [
+      /(^|\/)dockerfile$/,
+      /(^|\/)docker-compose\.ya?ml$/,
+      /(^|\/)\.dockerignore$/,
+    ],
+    tokens: ["docker", "docker-compose", "container_name", "image:"],
+  },
+  {
+    name: "Firebase",
+    weight: 8,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)firebase\.json$/,
+      /(^|\/)\.firebaserc$/,
+      /(^|\/)firestore\.rules$/,
+    ],
+    tokens: ["firebase", "firebase-admin", "firebase-functions", "@angular/fire"],
+  },
+  {
+    name: "Figma",
+    weight: 5,
+    patterns: [
+      /(^|\/)package\.json$/,
+      /(^|\/)manifest\.json$/,
+    ],
+    tokens: ["figma", "@figma/plugin-typings", "figma-plugin-ds"],
   },
   {
     name: "PyTorch",
@@ -538,6 +705,10 @@ function analyzeCommitFileFrameworks(commitDetails) {
         const matchedByPath = detector.patterns.some((pattern) => pattern.test(normalizedFilename));
         const matchedByPatch = detector.tokens.some((token) => patch.includes(token));
 
+        if (detector.requiresStrongPathMatch && !matchedByPath) {
+          return;
+        }
+
         if (!matchedByPath && !matchedByPatch) {
           return;
         }
@@ -600,6 +771,10 @@ async function fetchRepositoryManifestFrameworks(repositories, accessToken) {
         FRAMEWORK_DETECTORS.forEach((detector) => {
           const matchedByPath = detector.patterns.some((pattern) => pattern.test(normalizedPath));
           const matchedByContent = detector.tokens.some((token) => normalizedContent.includes(token));
+
+          if (detector.requiresStrongPathMatch && !matchedByPath) {
+            return;
+          }
 
           if (!matchedByPath && !matchedByContent) {
             return;

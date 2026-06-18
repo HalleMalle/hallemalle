@@ -247,7 +247,9 @@ export default function Profile() {
   const githubSyncedAt = profile.github_synced_at?.toDate
     ? profile.github_synced_at.toDate().toLocaleDateString("ko-KR")
     : "동기화 전";
-  const languageEntries = Object.entries(profile.github_language_json || {});
+  const languageEntries = Object.entries(profile.github_language_json || {}).filter(
+    ([, ratio]) => Number(ratio) > 0,
+  );
 
   return (
     <main className="profile-page">
@@ -335,9 +337,7 @@ export default function Profile() {
                 </button>
               </div>
             </form>
-          ) : (
-            <p className="profile-display-name">{profile.display_name}</p>
-          )}
+          ) : null}
 
           {errorMessage && (
             <p className="profile-message profile-message-error" role="alert">
