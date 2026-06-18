@@ -13,8 +13,15 @@
   background: $bg-primary;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
+  // 모바일에서는 알림 버튼(notif-wrapper)이 화면 우측 끝이 아니므로,
+  // 버튼 기준 정렬 대신 뷰포트 기준(fixed) 좌우 거터로 고정해 오버플로를 막는다.
   @include mobile {
-    width: calc(100vw - #{$spacing-md} * 2);
+    position: fixed;
+    top: calc(#{$header-height} + #{$spacing-xs});
+    left: $spacing-md;
+    right: $spacing-md;
+    width: auto;
+    max-width: none;
   }
 }
 
