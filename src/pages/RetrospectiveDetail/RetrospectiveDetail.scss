@@ -45,6 +45,10 @@
   font-weight: $font-weight-bold;
   line-height: $line-height-tight;
   word-break: break-word;
+
+  @include mobile {
+    font-size: $font-size-xl;
+  }
 }
 
 .retrospective-detail-meta {

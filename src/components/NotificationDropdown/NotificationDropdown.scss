@@ -12,6 +12,10 @@
   border-radius: $radius-lg;
   background: $bg-primary;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  @include mobile {
+    width: calc(100vw - #{$spacing-md} * 2);
+  }
 }
 
 .notification-dropdown-head {

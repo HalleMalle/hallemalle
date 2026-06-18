@@ -63,6 +63,15 @@
 .retrospective-form-actions {
   display: flex;
   gap: $spacing-sm;
+
+  @include mobile {
+    flex-direction: column-reverse;
+
+    .retrospective-form-submit,
+    .retrospective-form-cancel {
+      width: 100%;
+    }
+  }
 }
 
 .retrospective-form-submit {

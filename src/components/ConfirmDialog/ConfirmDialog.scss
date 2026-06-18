@@ -18,6 +18,10 @@
   border-radius: $radius-lg;
   background: $bg-primary;
   box-shadow: $shadow-xl;
+
+  @include mobile {
+    padding: $spacing-lg;
+  }
 }
 
 .confirm-dialog-title {
